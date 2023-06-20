@@ -1,6 +1,6 @@
 ---bumper---
 ###-TAPE_INDEX-###
-###-17_06_2023-23:47-###
+###-21_06_2023-01:15-###
 
 _0_ base:1000Hz
 --INDEX
@@ -34,8 +34,9 @@ _3_ base:1000Hz
     _A_
       10-	portrait.png
       128-	candle.png
-      295-	teufel.png
-      336-
+      297-	teufel.png
+      339-	city.png
+      400-
     _B_
       10-	face.png
       274-
