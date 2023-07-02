@@ -17,7 +17,7 @@ color_codes = {
     "000000": "D",  # Black
     "ff8000": "O",  # Orange
     "0080ff": "N",  # Blue2
-    "800080": "P"   # Magenta
+    "800080": "P"  # Magenta
 }
 
 
@@ -103,20 +103,15 @@ def decode(txt_path):
 
 output_filename = ''
 
-
 # Menu wyboru opcji
-def menu():
-    choice = input("Choose option (1-2):\n1) Encode\n2) Decode\n>>>")
+choice = input("Choose option (1-2):\n1) Encode\n2) Decode\n>>>")
 
-    if choice == "1":
-        image_path = input("Provide the path to the image file: ")
-        encode(image_path)
+if choice == "1":
+    image_path = input("Provide the path to the image file: ")
+    encode(image_path)
 
-    elif choice == "2":
-        txt_path = input("Enter the path to the txt file: ")
-        decode(txt_path)
-    else:
-        print("Invalid choice.")
-
-
-menu()
+elif choice == "2":
+    txt_path = input("Enter the path to the txt file: ")
+    decode(txt_path)
+else:
+    print("Invalid choice.")
