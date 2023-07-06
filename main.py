@@ -75,16 +75,16 @@ def img2txt(image_path):
 
     file_name_in = os.path.splitext(os.path.basename(image_path))[0]
     output_filename = file_name_in + '_encoded.txt'
-    img2txt_output_filepath = os.path.join(os.path.dirname(image_path), output_filename)
-    with open(img2txt_output_filepath, "w") as f:
+    img2txt_filepath = os.path.join(os.path.dirname(image_path), output_filename)
+    with open(img2txt_filepath, "w") as f:
         f.write(f"#---\n{width}x{height}x{file_name_in}\n#---\n")
         for count, color in quantized_data:
             f.write(f"{count}{color}")
         f.write("\n#---\n")
 
-    print(f"Text saved to {img2txt_output_filepath}")
+    print(f"Text saved to {img2txt_filepath}")
 
-    return img2txt_output_filepath
+    return img2txt_filepath
 
 
 def txt2img(txt_path):
@@ -126,6 +126,20 @@ def txt2img(txt_path):
     print(f'Image saved to {output_filepath}')
 
     return output_filename
+
+
+# --- --- ---
+# --- --- ---
+# --- --- ---
+
+def img2wav(image_path):
+    txt_file_path = img2txt(image_path)
+
+
+def wav2img():
+    pass
+
+
 # --- --- ---
 # --- --- ---
 # --- --- ---
@@ -196,8 +210,9 @@ def main():
     while run == True:
         choices_tape_menu = [
             ('txt2wav', ''),
-            ('img2wav', ''),
             ('wav2txt', ''),
+            ('img2wav', ''),
+            # ('wav2img', ''),
             ('exit', ''),
         ]
 
@@ -217,7 +232,7 @@ def main():
             if usr_input == choice_main_menu:
 
                 if choice_main_menu == 'txt2wav':
-                    in_filename = input('ENCODE\
+                    in_filename = input('txt2wav\
                                             \nInput file name: ')
                     out_filename = f'{in_filename}.wav'
 
@@ -264,15 +279,12 @@ def main():
                     w.close()
                     print(f"Text file was saved successfully: {out_filename}")
 
-                elif choice_main_menu == 'img2wav':
-                    image_path = input("Provide the path to the image file: ")
-                    img2txt(image_path)
-
                 elif choice_main_menu == 'wav2txt':
-                    file_to_decode = input('DECODE\
+                    file_to_decode = input('wav2txt\
                                                 \nInput file name: ')
 
                     wf = wave.open(file_to_decode, "rb")
+                    output_file_name = f"{file_to_decode}_decoded.txt"
                     sign_changes = generate_wav_sign_change_bits(wf)
                     byte_stream = generate_bytes(sign_changes, wf.getframerate())
 
@@ -282,16 +294,26 @@ def main():
                         if linebreak >= 0:
                             line = buffer[:linebreak + 1].replace(b'\r\n', b'\n')
                             buffer = buffer[linebreak + 1:]
-                            with open(f"{file_to_decode}_decoded.txt", "ab") as outf:
+                            with open(output_file_name, "ab") as outf:
                                 outf.write(line)
                         else:
                             fragment = bytes(byte for byte in islice(byte_stream, 80) if byte)
                             if not fragment:
-                                with open(f"{file_to_decode}_decoded.txt", "ab") as outf:
+                                with open(output_file_name, "ab") as outf:
                                     outf.write(buffer)
-                                print("Decoded data were saved to file: decoded.txt")
+                                print(f"Saved to file: {output_file_name}")
                                 break
                             buffer.extend(fragment)
+
+                elif choice_main_menu == 'img2wav':
+                    image_path = input("img2wav\
+                        \nProvide the path to the image file: ")
+                    img2txt(image_path)
+
+                elif choice_main_menu == 'wav2img':
+                    image_path = input("wav2img\
+                        \nProvide the path to the image file: ")
+                    # wav2img(image_path)
 
                 elif choice_main_menu == 'exit':
                     run = False
