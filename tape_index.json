@@ -1,0 +1,201 @@
+{
+  "header": "TAPE_INDEX",
+  "date": "17_07_2023-21:30",
+  "entries": [
+    {
+      "cassette": "0",
+      "base": "1000Hz",
+      "section": "INDEX",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            { "index": "10", "name": "tape_index.txt" }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        }
+      ]
+    },
+    {
+      "cassette": "1",
+      "base": "1000Hz",
+      "section": "CODE<python>--PROJ<Dreszcz-Gra Paragrafowa>",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        }
+      ]
+    },
+    {
+      "cassette": "2",
+      "base": "1000Hz",
+      "section": "CODE<python>--PROJ<Dreszcz-Gra Paragrafowa>",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        }
+      ]
+    },
+    {
+      "cassette": "3",
+      "base": "1000Hz",
+      "section": "IMAGES",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            { "index": "10", "name": "portrait.png" },
+            { "index": "128", "name": "candle.png" },
+            { "index": "297", "name": "teufel.png" },
+            { "index": "339", "name": "city.png" },
+            { "index": "400", "name": "" }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            { "index": "10", "name": "face.png" },
+            { "index": "274", "name": "" }
+          ]
+        }
+      ]
+    },
+    {
+      "cassette": "4",
+      "base": "1000Hz",
+      "section": "xxx",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        }
+      ]
+    },
+    {
+      "cassette": "5",
+      "base": "empty",
+      "section": "xxx",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        }
+      ]
+    },
+    {
+      "cassette": "6",
+      "base": "empty",
+      "section": "xxx",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        }
+      ]
+    },
+    {
+      "cassette": "7",
+      "base": "empty",
+      "section": "xxx",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            { "index": "10", "name": "" }
+          ]
+        }
+      ]
+    },
+    {
+      "cassette": "8",
+      "base": "1000Hz",
+      "section": "CODE<python> --TEXT",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            { "index": "2", "name": "INDEX (2Khz)" },
+            { "index": "10", "name": "base64converter.py" },
+            { "index": "35", "name": "img2txt.py" },
+            { "index": "96", "name": "img2txt_monochrome.py" },
+            { "index": "166", "name": "passwords.txt" },
+            { "index": "237", "name": "placeholder" },
+            { "index": "243", "name": "replace_polish_signs.py" },
+            { "index": "274", "name": "gen_qr.py" },
+            { "index": "296", "name": "savetree.py v.060723.1137" },
+            { "index": "316", "name": "file_inspector.py" },
+            { "index": "356", "name": "xxx" }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            { "index": "10", "name": "mcopy.py" },
+            { "index": "50", "name": "ontime_powerdown.py" },
+            { "index": "83", "name": "png2ico.py" },
+            { "index": "120", "name": "savetree.py" },
+            { "index": "142", "name": "yt_downloader.py" },
+            { "index": "192", "name": "kcs_enco_deco.py" },
+            { "index": "256", "name": "copy_ninja.py" },
+            { "index": "373", "name": "copy_ninja_compiler.py" },
+            { "index": "385", "name": "sc_config.txt" },
+            { "index": "391", "name": "" }
+          ]
+        }
+      ]
+    }
+  ]
+}
