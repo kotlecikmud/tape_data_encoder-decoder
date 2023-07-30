@@ -107,6 +107,20 @@ def kcs_encode_byte(byteval):
     return encoded
 
 
+# Include the run_length_encode function defined earlier for RLE compression
+def run_length_encode(data):
+    encoded_data = []
+    count = 1
+    for i in range(1, len(data)):
+        if data[i] == data[i - 1]:
+            count += 1
+        else:
+            encoded_data.append((count, data[i - 1]))
+            count = 1
+    encoded_data.append((count, data[-1]))
+    return encoded_data
+
+
 # Write a WAV file with encoded data. leader and trailer specify the
 # number of seconds of carrier signal to encode before and after the data
 

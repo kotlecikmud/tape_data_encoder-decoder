@@ -1,11 +1,11 @@
 {
   "header": "TAPE_INDEX",
-  "date": "17_07_2023-21:30",
+  "date": "26_07_2023-00:36",
   "entries": [
     {
-      "cassette": "0",
-      "base": "1000Hz",
-      "section": "INDEX",
+      "cassette": 0,
+      "base": 1000,
+      "data_type": "INDEX",
       "data": [
         {
           "label": "side A",
@@ -28,9 +28,42 @@
       ]
     },
     {
-      "cassette": "1",
+      "cassette": 1,
+      "base": 1000,
+      "data_type": "--CODE<python> --TEXT",
+      "data": [
+        {
+          "label": "side A",
+          "files": [
+            {
+              "index": 10,
+              "name": "index_edit.py"
+            },
+            {
+              "index": 85,
+              "name": "index_edit.py"
+            },
+            {
+              "index": 246,
+              "name": null
+            }
+          ]
+        },
+        {
+          "label": "side B",
+          "files": [
+            {
+              "index": null,
+              "name": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cassette": 2,
       "base": null,
-      "section": null,
+      "data_type": null,
       "data": [
         {
           "label": "side A",
@@ -53,56 +86,31 @@
       ]
     },
     {
-      "cassette": "2",
-      "base": null,
-      "section": null,
+      "cassette": 3,
+      "base": 1000,
+      "data_type": "IMAGES",
       "data": [
         {
           "label": "side A",
           "files": [
             {
-              "index": null,
-              "name": null
-            }
-          ]
-        },
-        {
-          "label": "side B",
-          "files": [
-            {
-              "index": null,
-              "name": null
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "cassette": "3",
-      "base": "1000Hz",
-      "section": "IMAGES",
-      "data": [
-        {
-          "label": "side A",
-          "files": [
-            {
-              "index": "10",
+              "index": 10,
               "name": "portrait.png"
             },
             {
-              "index": "128",
+              "index": 128,
               "name": "candle.png"
             },
             {
-              "index": "297",
+              "index": 297,
               "name": "teufel.png"
             },
             {
-              "index": "339",
+              "index": 339,
               "name": "city.png"
             },
             {
-              "index": "400",
+              "index": 400,
               "name": null
             }
           ]
@@ -123,9 +131,9 @@
       ]
     },
     {
-      "cassette": "4",
+      "cassette": 4,
       "base": null,
-      "section": null,
+      "data_type": null,
       "data": [
         {
           "label": "side A",
@@ -148,9 +156,9 @@
       ]
     },
     {
-      "cassette": "5",
+      "cassette": 5,
       "base": null,
-      "section": null,
+      "data_type": null,
       "data": [
         {
           "label": "side A",
@@ -173,9 +181,9 @@
       ]
     },
     {
-      "cassette": "6",
+      "cassette": 6,
       "base": null,
-      "section": null,
+      "data_type": null,
       "data": [
         {
           "label": "side A",
@@ -198,9 +206,9 @@
       ]
     },
     {
-      "cassette": "7",
+      "cassette": 7,
       "base": null,
-      "section": null,
+      "data_type": null,
       "data": [
         {
           "label": "side A",
@@ -223,51 +231,55 @@
       ]
     },
     {
-      "cassette": "8",
-      "base": "1000Hz",
-      "section": "--CODE<python> --TEXT",
+      "cassette": 8,
+      "base": 1000,
+      "data_type": "--CODE<python> --TEXT",
       "data": [
         {
           "label": "side A",
           "files": [
             {
-              "index": "10",
+              "index": 10,
               "name": "base64converter.py"
             },
             {
-              "index": "35",
+              "index": 35,
               "name": "img2txt.py"
             },
             {
-              "index": "96",
+              "index": 96,
               "name": "img2txt_monochrome.py"
             },
             {
-              "index": "166",
+              "index": 166,
               "name": "passwords.txt"
             },
             {
-              "index": "237",
+              "index": 237,
               "name": "placeholder"
             },
             {
-              "index": "243",
+              "index": 243,
               "name": "replace_polish_signs.py"
             },
             {
-              "index": "274",
+              "index": 274,
               "name": "gen_qr.py"
             },
             {
-              "index": "296",
+              "index": 296,
               "name": "savetree.py v.060723.1137"
             },
             {
-              "index": "316",
+              "index": 316,
               "name": "file_inspector.py"
             },
             {
-              "index": "356",
+              "index": 356,
+              "name": "clean_git.py"
+            },
+            {
+              "index": 372,
               "name": null
             }
           ]
@@ -276,43 +288,43 @@
           "label": "side B",
           "files": [
             {
-              "index": "10",
+              "index": 10,
               "name": "mcopy.py"
             },
             {
-              "index": "50",
+              "index": 50,
               "name": "ontime_powerdown.py"
             },
             {
-              "index": "83",
+              "index": 83,
               "name": "png2ico.py"
             },
             {
-              "index": "120",
+              "index": 120,
               "name": "savetree.py"
             },
             {
-              "index": "142",
+              "index": 142,
               "name": "yt_downloader.py"
             },
             {
-              "index": "192",
+              "index": 192,
               "name": "kcs_enco_deco.py"
             },
             {
-              "index": "256",
+              "index": 256,
               "name": "copy_ninja.py"
             },
             {
-              "index": "373",
+              "index": 373,
               "name": "copy_ninja_compiler.py"
             },
             {
-              "index": "385",
+              "index": 385,
               "name": "sc_config.txt"
             },
             {
-              "index": "391",
+              "index": 391,
               "name": null
             }
           ]

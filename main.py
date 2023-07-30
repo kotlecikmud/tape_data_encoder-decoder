@@ -7,9 +7,6 @@ import base64
 from collections import deque
 from itertools import islice
 import wave
-import datetime
-import qrcode
-import warnings
 import os
 import math
 from PIL import Image

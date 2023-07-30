@@ -1,51 +1,39 @@
 import os
-
+import re
 
 def convert_text(text, convert_type):
-    if convert_type == 'PL2':
-        replacements_dictionary = {
-            'ą': '<a>',
-            'ć': '<c>',
-            'ę': '<e>',
-            'ł': '<l>',
-            'ń': '<n>',
-            'ó': '<o>',
-            'ś': '<s>',
-            'ź': '<zi>',
-            'ż': '<z>',
-            'Ą': '<A>',
-            'Ć': '<C>',
-            'Ę': '<E>',
-            'Ł': '<L>',
-            'Ń': '<N>',
-            'Ó': '<O>',
-            'Ś': '<S>',
-            'Ź': '<ZI>',
-            'Ż': '<Z>'
-        }
-    elif convert_type == '2PL':
-        replacements_dictionary = {
-            '<a>': 'ą',
-            '<c>': 'ć',
-            '<e>': 'ę',
-            '<l>': 'ł',
-            '<n>': 'ń',
-            '<o>': 'ó',
-            '<s>': 'ś',
-            '<zi>': 'ź',
-            '<z>': 'ż',
-            '<A>': 'Ą',
-            '<C>': 'Ć',
-            '<E>': 'Ę',
-            '<L>': 'Ł',
-            '<N>': 'Ń',
-            '<O>': 'Ó',
-            '<S>': 'Ś',
-            '<ZI>': 'Ź',
-            '<Z>': 'Ż'
-        }
+    replacements_dictionary = {
+        'ą': r"'\u0105'",
+        'ć': r"'\u0107'",
+        'ę': r"'\u0119'",
+        'ł': r"'\u0142'",
+        'ń': r"'\u0144'",
+        'ó': r"'\u00F3'",
+        'ś': r"'\u015B'",
+        'ź': r"'\u017A'",
+        'ż': r"'\u017C'",
+        'Ą': r"'\u0104'",
+        'Ć': r"'\u0106'",
+        'Ę': r"'\u0118'",
+        'Ł': r"'\u0141'",
+        'Ń': r"'\u0143'",
+        'Ó': r"'\u00D3'",
+        'Ś': r"'\u015A'",
+        'Ź': r"'\u0179'",
+        'Ż': r"'\u017B'"
+    }
 
-    for character, replacement in replacements_dictionary.items():
+    if convert_type == 'PL2':
+        dictionary = replacements_dictionary
+    elif convert_type == '2PL':
+        dictionary = {v: k for k, v in replacements_dictionary.items()}
+        pattern = re.compile(r"'\\u[0-9A-Fa-f]{4}'")
+        matches = pattern.findall(text)
+        for match in matches:
+            text = text.replace(match, dictionary.get(match, match))
+        return text
+
+    for character, replacement in dictionary.items():
         text = text.replace(character, replacement)
 
     return text
