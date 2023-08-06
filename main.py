@@ -3,7 +3,7 @@
 # based on: py-kcs by David Beazley (http://www.dabeaz.com)
 # ---------------------------------------------------------
 
-import base64
+
 from collections import deque
 from itertools import islice
 import wave
@@ -204,14 +204,18 @@ def make_square_wave(freq, framerate):
 # MAIN MENU
 def main():
     run = True
-    while run == True:
-        choices_tape_menu = [
+    
+    choices_tape_menu = [
             ('txt2wav', ''),
             ('wav2txt', ''),
             ('img2wav', ''),
             # ('wav2img', ''),
             ('exit', ''),
         ]
+    
+    while run == True:
+    
+        clear_terminal()
 
         for i, (choice_main_menu, description) in enumerate(choices_tape_menu,
                                                             1):  # displaying the list in the main menu

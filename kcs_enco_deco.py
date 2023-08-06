@@ -7,7 +7,8 @@
 
 from collections import deque
 from itertools import islice
-import wave, os, datetime
+import wave
+import os
 
 # A few global parameters related to the encoding
 ZERO_FREQ = 1000  # Hz (per KCS)
