@@ -1,10 +1,42 @@
-# img2txt.py
-# Filip Pawlowski 2023
-# filippawlowski2012@gmail.com
+"""
+img2txt.py
+Filip Pawlowski 2023
+filippawlowski2012@gmail.com
+"""
 
 import os
+import time
 import math
+import threading
 from PIL import Image
+
+__version__ = "1.1"
+
+
+class LoadingAnimation:
+    def __init__(self):
+        self.animation_signs = ['|....', '.|...', '..|..', '...|.', '....|', '...|.', '..|..', '.|...']
+        self.sign_index = 0
+        self.finished = False
+
+    def start(self):
+        self.finished = False
+        self._animate_thread = threading.Thread(target=self._animate)
+        self._animate_thread.start()
+
+    def stop(self):
+        self.finished = True
+        self._animate_thread.join()
+
+    def _animate(self):
+        while not self.finished:
+            print(self.animation_signs[self.sign_index % len(self.animation_signs)], end='\r')
+            time.sleep(0.1)
+            self.sign_index += 1
+
+
+# Instantiate LoadingAnimation class
+loading_animation = LoadingAnimation()
 
 color_codes = {
     "ff0000": "R",  # Red
@@ -22,6 +54,8 @@ color_codes = {
 
 
 def encode(image_path):
+    loading_animation.start()
+
     image = Image.open(image_path)
     image = image.convert("RGB")
     width, height = image.size
@@ -57,10 +91,14 @@ def encode(image_path):
             f.write(f"{count}{color}")
         f.write("\n#---\n")
 
+    loading_animation.stop()
+
     print(f"Quantized image saved to {output_filepath}")
 
 
 def decode(txt_path):
+    loading_animation.start()
+
     with open(txt_path, "r") as f:
         lines = f.readlines()
 
@@ -96,6 +134,8 @@ def decode(txt_path):
     output_filepath = os.path.join(os.path.dirname(txt_path), output_filename)
     image.save(output_filepath)
 
+    loading_animation.stop()
+
     print(f'Decoded image saved to {output_filepath}')
 
     return output_filename
@@ -103,15 +143,20 @@ def decode(txt_path):
 
 output_filename = ''
 
-# Menu wyboru opcji
-choice = input("Choose option (1-2):\n1) Encode\n2) Decode\n>>>")
+while True:
+    # Menu wyboru opcji
+    choice = input(f"img2wav {__version__}\nChoose option (1-3):\n1) Encode\n2) Decode\n3) Exit\n>>>")
 
-if choice == "1":
-    image_path = input("Provide the path to the image file: ")
-    encode(image_path)
+    if choice == "1":
+        image_path = input("Provide the path to the image file: ")
+        encode(image_path)
 
-elif choice == "2":
-    txt_path = input("Enter the path to the txt file: ")
-    decode(txt_path)
-else:
-    print("Invalid choice.")
+    elif choice == "2":
+        txt_path = input("Enter the path to the txt file: ")
+        decode(txt_path)
+
+    elif choice == "3":
+        break
+
+    else:
+        print("Invalid choice.")
