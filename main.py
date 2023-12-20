@@ -203,18 +203,16 @@ def make_square_wave(freq, framerate):
 
 # MAIN MENU
 def main():
-    run = True
-    
     choices_tape_menu = [
-            ('txt2wav', ''),
-            ('wav2txt', ''),
-            ('img2wav', ''),
-            # ('wav2img', ''),
-            ('exit', ''),
-        ]
-    
-    while run == True:
-    
+        ('txt2wav', ''),
+        ('wav2txt', ''),
+        ('img2wav', ''),
+        ('wav2img', ''),
+        ('exit', ''),
+    ]
+
+    while True:
+
         clear_terminal()
 
         for i, (choice_main_menu, description) in enumerate(choices_tape_menu,
@@ -312,12 +310,13 @@ def main():
                     img2txt(image_path)
 
                 elif choice_main_menu == 'wav2img':
-                    image_path = input("wav2img\
-                        \nProvide the path to the image file: ")
+                    input("unavailable")
+                    # image_path = input("wav2img\
+                    #     \nProvide the path to the image file: ")
                     # wav2img(image_path)
 
                 elif choice_main_menu == 'exit':
-                    run = False
+                    break
 
 
 # --- --- ---
