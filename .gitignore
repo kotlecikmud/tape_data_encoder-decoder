@@ -1,4 +1,4 @@
-index.json
-git_push.bat
-REAPER Media.lnk
-__pycache__
+/index.json
+/git_push.bat
+/REAPER Media.lnk
+/__pycache__
