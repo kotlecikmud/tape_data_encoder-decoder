@@ -51,14 +51,14 @@ COLOR_MODES = {
     },
     # 8-bit RGB/CMY/White/Black
     "COLOR": {
-        "FF0000": "R",  # Red
-        "00FF00": "G",  # Green
-        "0000FF": "B",  # Blue
-        "FFFF00": "Y",  # Yellow
-        "00FFFF": "C",  # Cyan
-        "FF00FF": "M",  # Magenta
-        "FFFFFF": "W",  # White
-        "000000": "D"  # Black
+        "FF0000": "CR",  # Red
+        "00FF00": "CG",  # Green
+        "0000FF": "CB",  # Blue
+        "FFFF00": "CY",  # Yellow
+        "00FFFF": "CC",  # Cyan
+        "FF00FF": "CM",  # Magenta
+        "FFFFFF": "CW",  # White
+        "000000": "CD"  # Black
     },
     # Extended Monochrome - 16 shades of grayscale
     "MONO_EXTENDED": {
@@ -81,26 +81,26 @@ COLOR_MODES = {
     },
     # Extended 20-color palette
     "COLOR_EXTENDED": {
-        "FF0000": "R",  # Red
-        "FFFF00": "Y",  # Yellow
-        "00FF00": "G",  # Green
-        "0000FF": "B",  # Blue
-        "00FFFF": "C",  # Cyan
-        "FF00FF": "M",  # Violet
-        "FFFFFF": "W",  # White
-        "000000": "D",  # Black
-        "FF8000": "O",  # Orange
-        "0080FF": "M",  # Blue2
-        "800080": "P",  # Magenta
-        "808080": "H",  # Gray
-        "FFC0CB": "K",  # Pink
-        "A52A2A": "A",  # Brown
-        "008000": "E",  # Dark Green
-        "4B0082": "I",  # Indigo
-        "FFA500": "F",  # Bright Orange
-        "808000": "J",  # Olive
-        "C71585": "L",  # Medium Violet Red
-        "40E0D0": "T"  # Turquoise
+        "FF0000": "CR",  # Red
+        "FFFF00": "CY",  # Yellow
+        "00FF00": "CG",  # Green
+        "0000FF": "CB",  # Blue
+        "00FFFF": "CC",  # Cyan
+        "FF00FF": "CM",  # Violet
+        "FFFFFF": "CW",  # White
+        "000000": "CD",  # Black
+        "FF8000": "CO",  # Orange
+        "0080FF": "CM",  # Blue2
+        "800080": "CP",  # Magenta
+        "808080": "CH",  # Gray
+        "FFC0CB": "CK",  # Pink
+        "A52A2A": "CA",  # Brown
+        "008000": "CE",  # Dark Green
+        "4B0082": "CI",  # Indigo
+        "FFA500": "CF",  # Bright Orange
+        "808000": "CJ",  # Olive
+        "C71585": "CL",  # Medium Violet Red
+        "40E0D0": "CT"  # Turquoise
     }
 }
 
@@ -134,6 +134,7 @@ def encode(image_path, mode='COLOR'):
     image = Image.open(image_path)
     image = image.convert("RGB")
     width, height = image.size
+    total_pixels = width * height
 
     quantized_data = []
     current_color = None
@@ -154,12 +155,18 @@ def encode(image_path, mode='COLOR'):
                 current_color = color
                 color_count = 1
 
+            # Calculate and print progress
+            current_pixel = y * width + x + 1
+            progress = (current_pixel / total_pixels) * 100
+            print(f"Encoding progress: {progress:.2f}%", end="\r")
+
     quantized_data.append((color_count, current_color))
 
     file_name_in = os.path.splitext(os.path.basename(image_path))[0]
     output_filename = f"{file_name_in}_encoded_{mode}.txt"
     output_filepath = os.path.join(os.path.dirname(image_path), output_filename)
 
+    print("writing file...")
     with open(output_filepath, "w") as f:
         f.write(f"{SEPARATOR}\n{width}{SEPARATOR}{height}{SEPARATOR}{file_name_in}{SEPARATOR}{mode}\n{SEPARATOR}\n")
         for count, color in quantized_data:
@@ -167,11 +174,8 @@ def encode(image_path, mode='COLOR'):
         f.write(f"\n{SEPARATOR}\n")
 
     loading_animation.stop()
-    print(f"Quantized image saved to {output_filepath}")
+    print(f"\nQuantized image saved to {output_filepath}")
 
-
-from PIL import Image
-import os
 
 def decode(txt_path):
     """Decode an encoded text file back to an image"""
@@ -195,15 +199,17 @@ def decode(txt_path):
     encoded_data = lines[3].strip()
     decoded_data = []
 
+    total_length = len(encoded_data)
     i = 0
-    while i < len(encoded_data):
+
+    while i < total_length:
         # Extract count (digits) and color code
         count_str = ""
-        while i < len(encoded_data) and encoded_data[i].isdigit():
+        while i < total_length and encoded_data[i].isdigit():
             count_str += encoded_data[i]
             i += 1
 
-        if i >= len(encoded_data):
+        if i >= total_length:
             break
 
         # Handle multi-character color codes
@@ -219,7 +225,11 @@ def decode(txt_path):
 
         decoded_data.extend([color] * count)
 
-    # Truncate or pad to match the total pixel count
+        # Print progress
+        progress = (i / total_length) * 100
+        print(f"Decoding progress: {progress:.2f}%", end="\r")
+
+    print("Truncate or pad to match the total pixel count")
     total_pixels = width * height
     if len(decoded_data) > total_pixels:
         decoded_data = decoded_data[:total_pixels]
@@ -227,14 +237,14 @@ def decode(txt_path):
         last_color = decoded_data[-1] if decoded_data else list(color_codes.values())[0]
         decoded_data.extend([last_color] * (total_pixels - len(decoded_data)))
 
-    # Map color codes to RGB values
+    print("Map color codes to RGB values")
     pixels = []
     for char in decoded_data:
         matching_hex = next((hex_code for hex_code, code in color_codes.items() if code == char), "000000")
         rgb = tuple(int(matching_hex[i:i + 2], 16) for i in (0, 2, 4))
         pixels.append(rgb)
 
-    # Create and save the image
+    print("Create and save the image")
     image = Image.new("RGB", (width, height))
     image.putdata(pixels)
 
@@ -242,9 +252,8 @@ def decode(txt_path):
     output_filepath = os.path.join(os.path.dirname(txt_path), output_filename)
     image.save(output_filepath)
 
-    print(f'Decoded image saved to {output_filepath}')
+    print(f'\nDecoded image saved to {output_filepath}')
     return output_filename
-
 
 
 def main():
