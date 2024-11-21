@@ -12,7 +12,7 @@ import math
 from PIL import Image
 
 # A few global parameters related to the encoding
-ZERO_FREQ = 1000  # Hz (per KCS)
+ZERO_FREQ = 500  # Hz (per KCS)
 ONES_FREQ = ZERO_FREQ * 2  # Hz (per KCS)
 FRAMERATE = ONES_FREQ * 2  # Hz
 

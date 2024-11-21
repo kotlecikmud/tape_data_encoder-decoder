@@ -123,6 +123,20 @@ def find_closest_color(rgb, color_mode):
                key=lambda c: math.dist(rgb, tuple(int(c[i:i + 2], 16) for i in (0, 2, 4))))
 
 
+def format_time(seconds):
+    """Format time in hours, minutes, seconds."""
+    if seconds < 60:
+        return f"{seconds:.1f} seconds"
+    elif seconds < 3600:
+        minutes = int(seconds // 60)
+        secs = int(seconds % 60)
+        return f"{minutes} min {secs} sec"
+    else:
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        return f"{hours} hr {minutes} min"
+
+
 def encode_channel(channel, width, height, mode='MONO_EXTENDED'):
     """
     Encode a single image channel with quantization and progress tracking.
