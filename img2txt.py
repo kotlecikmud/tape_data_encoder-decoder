@@ -4,7 +4,7 @@ Filip Pawlowski 2023
 filippawlowski2012@gmail.com
 """
 
-__version__ = "00.02.00.00"
+__version__ = "00.02.01.00"
 
 import os
 import time
@@ -514,8 +514,72 @@ def decode(txt_path):
         print(f'\nDecoded image saved to {output_filepath}')
         return output_filename
 
-    # Existing decoding logic for other modes
-    # ... (rest of the original decode function remains the same)
+    # Validate mode
+    if mode not in COLOR_MODES:
+        print(f"Invalid mode. Choose from {list(COLOR_MODES.keys())}")
+        return
+
+    color_codes = COLOR_MODES[mode]
+
+    # Parse the encoded data
+    encoded_data = lines[3].strip()
+    decoded_data = []
+
+    total_length = len(encoded_data)
+    i = 0
+
+    while i < total_length:
+        # Extract count (digits) and color code
+        count_str = ""
+        while i < total_length and encoded_data[i].isdigit():
+            count_str += encoded_data[i]
+            i += 1
+
+        if i >= total_length:
+            break
+
+        # Handle multi-character color codes
+        color = encoded_data[i:i + 2]
+        i += 2
+
+        try:
+            count = int(count_str) if count_str else 1
+            count = min(count, width * height)
+        except ValueError:
+            print(f"Warning: Invalid count value '{count_str}'. Skipping.")
+            continue
+
+        decoded_data.extend([color] * count)
+
+        # Print progress
+        progress = (i / total_length) * 100
+        print(f"Decoding progress: {progress:.2f}%", end="\r")
+
+    print("Truncate or pad to match the total pixel count")
+    total_pixels = width * height
+    if len(decoded_data) > total_pixels:
+        decoded_data = decoded_data[:total_pixels]
+    elif len(decoded_data) < total_pixels:
+        last_color = decoded_data[-1] if decoded_data else list(color_codes.values())[0]
+        decoded_data.extend([last_color] * (total_pixels - len(decoded_data)))
+
+    print("Map color codes to RGB values")
+    pixels = []
+    for char in decoded_data:
+        matching_hex = next((hex_code for hex_code, code in color_codes.items() if code == char), "000000")
+        rgb = tuple(int(matching_hex[i:i + 2], 16) for i in (0, 2, 4))
+        pixels.append(rgb)
+
+    print("Create and save the image")
+    image = Image.new("RGB", (width, height))
+    image.putdata(pixels)
+
+    output_filename = f"{file_name_out}_{mode}.png"
+    output_filepath = os.path.join(os.path.dirname(txt_path), output_filename)
+    image.save(output_filepath)
+
+    print(f'\nDecoded image saved to {output_filepath}')
+    return output_filename
 
 
 def main():
