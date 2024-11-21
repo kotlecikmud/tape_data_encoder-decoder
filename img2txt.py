@@ -9,7 +9,6 @@ __version__ = "00.02.02.00"
 import os
 import time
 import math
-import zlib
 import threading
 from PIL import Image
 
@@ -497,17 +496,18 @@ def run_length_decode(encoded_data):
     return decoded
 
 
+
 def encode(image_path, mode="MONO8"):
     """
-       Encode an image with redundancy to handle small corruptions.
+    General-purpose encoding function for multiple color modes.
 
-       Args:
-           image_path (str): Path to the input image.
-           mode (str): Encoding mode ('MONO2', 'MONO4', 'MONO8', 'RGB8').
+    Args:
+        image_path (str): Path to the input image.
+        mode (str): Encoding mode ('MONO2', 'MONO4', 'MONO8', 'RGB8').
 
-       Returns:
-           str: Path to the encoded file.
-       """
+    Returns:
+        str: Path to the encoded file.
+    """
     start_time = time.time()
     image = Image.open(image_path).convert("RGB")
     width, height = image.size
@@ -515,7 +515,7 @@ def encode(image_path, mode="MONO8"):
 
     # Prepare output path
     file_name_in = os.path.splitext(os.path.basename(image_path))[0]
-    output_filepath = os.path.join(os.path.dirname(image_path), f"{file_name_in}_encoded_{mode}_redundant.bin")
+    output_filepath = os.path.join(os.path.dirname(image_path), f"{file_name_in}_encoded_{mode}.bin")
 
     # Initialize encoded data as bytearray
     encoded_data = bytearray()
@@ -526,59 +526,52 @@ def encode(image_path, mode="MONO8"):
     encoded_data.extend(mode.encode('utf-8'))
     encoded_data.extend(SEPARATOR)
 
-    # Encode row by row
-    for y in range(height):
-        row_pixels = pixels[y * width:(y + 1) * width]
-
-        if mode == "MONO2":
-            grayscale_pixels = [round(sum(pixel) / 3) for pixel in row_pixels]
-            quantized_pixels = [(p * 3) // 255 for p in grayscale_pixels]  # Scale 0-255 to 0-3
-            packed_data = pack_2bit_data(quantized_pixels)
-        elif mode == "MONO4":
-            grayscale_pixels = [round(sum(pixel) / 3) for pixel in row_pixels]
-            quantized_pixels = [(p * 15) // 255 for p in grayscale_pixels]  # Scale 0-255 to 0-15
-            packed_data = pack_4bit_data(quantized_pixels)
-        elif mode == "MONO8":
-            grayscale_pixels = [round(sum(pixel) / 3) for pixel in row_pixels]
-            packed_data = bytearray(grayscale_pixels)
-        elif mode == "RGB8":
-            packed_data = bytearray(pack_rgb_pixels(row_pixels))
-        else:
-            raise ValueError(f"Unsupported mode: {mode}")
-
-        # Add row header
-        row_header = f"ROW{y:04d}".encode('utf-8')
-        encoded_data.extend(row_header)
-
-        # Add CRC for the row
-        row_bytes = bytes(packed_data)  # Convert packed_data to bytes
-        crc = zlib.crc32(row_bytes).to_bytes(4, 'big')
-        encoded_data.extend(crc)
-
-        # Add primary row data
-        encoded_data.extend(row_bytes)
-
-        # Add redundant copy of the row
-        encoded_data.extend(row_bytes)
+    # Encode based on mode
+    if mode == "MONO2":
+        grayscale_pixels = [round(sum(pixel) / 3) for pixel in pixels]
+        quantized_pixels = [(p * 3) // 255 for p in grayscale_pixels]  # Scale 0-255 to 0-3
+        packed_data = pack_2bit_data(quantized_pixels)
+        encoded_data.extend(packed_data)
+    elif mode == "MONO4":
+        grayscale_pixels = [round(sum(pixel) / 3) for pixel in pixels]
+        quantized_pixels = [(p * 4) // 255 for p in grayscale_pixels]  # Scale 0-255 to 0-3
+        packed_data = pack_4bit_data(quantized_pixels)
+        encoded_data.extend(packed_data)
+    elif mode == "MONO8":
+        grayscale_pixels = [round(sum(pixel) / 3) for pixel in pixels]  # Convert to grayscale
+        run_length_data = run_length_encode(grayscale_pixels)  # Perform RLE
+        # Serialize the RLE data into bytes (value and count pairs)
+        for value, count in run_length_data:
+            encoded_data.append(value)  # Add the grayscale value (1 byte)
+            encoded_data.extend(count.to_bytes(4, 'big'))  # Add the count (4 bytes for safety)
+    elif mode == "RGB4":
+        quantized_pixels = [
+            ((pixel[0] * 15) // 255, (pixel[1] * 15) // 255, (pixel[2] * 15) // 255)
+            for pixel in pixels
+        ]
+        packed_data = pack_4bit_data([val for p in quantized_pixels for val in p])
+        encoded_data.extend(packed_data)
+    elif mode == "RGB8":
+        encoded_data.extend(pack_rgb_pixels(pixels))
 
     # Save encoded file
     with open(output_filepath, "wb") as f:
         f.write(encoded_data)
 
-    print(f"Encoding completed in {time.time() - start_time:.2f} seconds with redundancy.")
+    print(f"Encoding completed in {time.time() - start_time:.2f} seconds.")
     return output_filepath
 
 
 def decode(file_path):
     """
-       Decode an image encoded with redundancy to handle small corruptions.
+    General-purpose decoding function for multiple color modes.
 
-       Args:
-           file_path (str): Path to the encoded file.
+    Args:
+        file_path (str): Path to the encoded file.
 
-       Returns:
-           str: Path to the decoded image.
-       """
+    Returns:
+        str: Path to the decoded image.
+    """
     start_time = time.time()
 
     # Read encoded file
@@ -593,49 +586,45 @@ def decode(file_path):
     mode_end = data.index(SEPARATOR)
     mode = data[8:mode_end].decode('utf-8')
 
-    # Extract the body (row data) after the separator
+    # Extract the body (pixel data) after the separator
     body = data[mode_end + len(SEPARATOR):]
 
-    # Initialize pixel storage
+    # Debug output
+    print(f"Decoding mode: {mode}")
+
     pixels = []
+    if mode == "MONO2":
+        # Check if the body length matches the expected size for MONO2
+        if len(body) != width * height // 4:
+            raise ValueError(
+                f"Invalid body length for MONO2 mode. Expected {width * height // 4}, but got {len(body)}.")
 
-    for y in range(height):
-        row_header = f"ROW{y:04d}".encode('utf-8')
-        row_start = body.find(row_header)
-        if row_start == -1:
-            print(f"Row {y} missing or corrupted. Skipping.")
-            pixels.extend([(0, 0, 0)] * width)  # Add blank pixels
-            continue
-
-        try:
-            row_crc = int.from_bytes(body[row_start + 8:row_start + 12], 'big')
-            row_data = body[row_start + 12:row_start + 12 + width * 3]  # Assuming RGB8 for simplicity
-            redundant_data = body[row_start + 12 + width * 3:row_start + 12 + 2 * width * 3]
-
-            # Verify CRC
-            if zlib.crc32(row_data) != row_crc:
-                print(f"CRC mismatch for Row {y}. Attempting recovery.")
-                if zlib.crc32(redundant_data) == row_crc:
-                    print(f"Using redundant data for Row {y}.")
-                    row_data = redundant_data
-                else:
-                    print(f"Both primary and redundant data corrupted for Row {y}. Skipping.")
-                    pixels.extend([(0, 0, 0)] * width)  # Add blank pixels
-                    continue
-
-            # Decode row
-            for i in range(0, len(row_data), 3):
-                r = row_data[i]
-                g = row_data[i + 1]
-                b = row_data[i + 2]
-                pixels.append((r, g, b))
-        except Exception as e:
-            print(f"Error decoding Row {y}: {e}. Skipping.")
-            pixels.extend([(0, 0, 0)] * width)  # Add blank pixels
+        decoded_pixels = unpack_2bit_data(body, width * height)
+        pixels = [(p * 85, p * 85, p * 85) for p in decoded_pixels]  # Scale 0-3 to 0-255
+    elif mode == "MONO4":
+        if len(body) < (width * height) // 2:  # Check if the body length is valid for MONO4
+            raise ValueError(
+                f"Invalid body length for MONO4 mode. Expected {(width * height) // 2}, but got {len(body)}.")
+        decoded_pixels = unpack_4bit_data(body, width * height)
+        pixels = [(p * 17, p * 17, p * 17) for p in decoded_pixels]  # Scale 0-15 to 0-255
+    elif mode == "MONO8":
+        decoded_pixels = run_length_decode(body)
+        pixels = [(value, value, value) for value in decoded_pixels]
+    elif mode == "RGB4":
+        decoded_pixels = unpack_4bit_data(body, (width * height) * 3)
+        pixels = [(decoded_pixels[i] * 17, decoded_pixels[i + 1] * 17, decoded_pixels[i + 2] * 17)
+                  for i in range(0, len(decoded_pixels), 3)]
+    elif mode == "RGB8":
+        for i in range(0, len(body), 3):
+            r = body[i]
+            g = body[i + 1]
+            b = body[i + 2]
+            pixels.append((r, g, b))
 
     # Create and save the image
     image = Image.new("RGB", (width, height))
     image.putdata(pixels)
+
     output_filepath = os.path.splitext(file_path)[0] + "_decoded.png"
     image.save(output_filepath)
     print(f"Decoding completed in {time.time() - start_time:.2f} seconds.")
