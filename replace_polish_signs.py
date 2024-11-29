@@ -23,7 +23,7 @@ def convert_text(text, convert_type):
         '\u0179': r"'\u0179'",
         '\u017B': r"'\u017B'"
     }
-    
+
     dictionary = None
     if convert_type == 'PL2':
         dictionary = replacements_dictionary

@@ -1,5 +1,5 @@
 """
-img2txt.py
+img2txt_UTF8.py
 Filip Pawlowski 2023
 filippawlowski2012@gmail.com
 """
@@ -80,7 +80,7 @@ COLOR_MODES = {
         "141414": "U",  # Pale Grayscale
         "151515": "V",  # Very Pale
         "161616": "W",  # Nearly White
-        "171717": "X"   # Pure White
+        "171717": "X"  # Pure White
     },
     # Simple Color
     "COLOR8": {

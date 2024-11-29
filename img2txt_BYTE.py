@@ -1,5 +1,5 @@
 """
-img2txt.py
+img2txt_BYTE.py
 Filip Pawlowski 2023
 filippawlowski2012@gmail.com
 """
@@ -494,7 +494,6 @@ def run_length_decode(encoded_data):
         decoded.extend([value] * count)  # Repeat the value `count` times
         idx += 5  # Move to the next RLE pair
     return decoded
-
 
 
 def encode(image_path, mode="MONO8"):

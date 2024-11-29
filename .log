@@ -1,0 +1,49 @@
+[2024-11-29 01:04:54.649668]|config file was not found
+[2024-11-29 01:04:54.650670]|backup config written to e:\PycharmProjects\tape_data_encoder-decoder\config.json
+[2024-11-29 01:04:54.755330]|config successfully loaded from file
+[2024-11-29 01:04:58.881156]|config successfully loaded from file
+[2024-11-29 01:05:21.534716]|config successfully loaded from file
+[2024-11-29 01:05:49.896072]|config successfully loaded from file
+[2024-11-29 01:09:57.384985]|config successfully loaded from file
+[2024-11-29 01:09:57.384985]|program started
+[2024-11-29 01:11:12.048743]|config successfully loaded from file
+[2024-11-29 01:11:12.048743]|program started
+[2024-11-29 01:11:25.670374]|Text file was saved successfully: e:\PycharmProjects\tape_data_encoder-decoder\amber_s_encoded_COLOR8.wav
+[2024-11-29 01:13:30.050365]|config successfully loaded from file
+[2024-11-29 01:13:30.050365]|program started
+[2024-11-29 01:21:33.216743]|config successfully loaded from file
+[2024-11-29 01:21:33.216743]|program started
+[2024-11-29 01:22:15.949884]|config successfully loaded from file
+[2024-11-29 01:22:15.950893]|program started
+[2024-11-29 01:22:20.779094]|Decoded data were saved to file: .decoded
+[2024-11-29 01:23:10.494813]|config successfully loaded from file
+[2024-11-29 01:23:10.494813]|program started
+[2024-11-29 01:23:13.837197]|Text file was saved successfully: call_polish.wav
+[2024-11-29 01:26:52.549594]|Decoded data were saved to file: .decoded
+[2024-11-29 01:27:45.703823]|config successfully loaded from file
+[2024-11-29 01:27:45.703823]|program started
+[2024-11-29 01:27:47.387532]|Text file was saved successfully: call_polish.wav
+[2024-11-29 01:30:05.689097]|Found original filename: call_polish.bat
+[2024-11-29 01:30:05.690097]|Found timestamp: 2024-11-21 01:55:24
+[2024-11-29 01:30:05.697097]|Decoded data were saved to file: call_polish_1.bat
+[2024-11-29 01:39:12.380396]|config successfully loaded from file
+[2024-11-29 01:39:12.380396]|program started
+[2024-11-29 01:39:14.020262]|Text file was saved successfully: call_polish.wav
+[2024-11-29 01:41:04.977967]|Found original filename: call_polish.bat
+[2024-11-29 01:41:04.977967]|Found timestamp: 2024-11-21 01:55:24
+[2024-11-29 01:41:05.021065]|Decoded data were saved to file: call_polish_1.bat
+[2024-11-29 01:43:15.270280]|config successfully loaded from file
+[2024-11-29 01:43:15.270280]|program started
+[2024-11-29 01:43:29.544155]|Text file was saved successfully: gen_qr.wav
+[2024-11-29 01:49:25.842583]|config successfully loaded from file
+[2024-11-29 01:49:25.842583]|program started
+[2024-11-29 01:49:28.244494]|Found original filename: gen_qr.py
+[2024-11-29 01:49:28.244494]|Found timestamp: 2024-11-21 01:55:24
+[2024-11-29 01:49:28.510748]|Decoded data were saved to file: gen_qr_1.py
+[2024-11-29 01:51:56.074383]|config successfully loaded from file
+[2024-11-29 01:51:56.074383]|program started
+[2024-11-29 01:52:07.712376]|Text file was saved successfully: replace_polish_signs.wav
+[2024-11-29 01:58:03.678291]|config successfully loaded from file
+[2024-11-29 01:58:03.678291]|program started
+[2024-11-29 01:58:06.823916]|Footer detected and removed.
+[2024-11-29 01:58:06.832425]|Decoded data saved to file: replace_polish_signs_1.py

@@ -1,2 +1,4 @@
 @echo off
-python main.py
+cls
+python kcs_enco_deco.py
+pause
