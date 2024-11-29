@@ -47,3 +47,31 @@
 [2024-11-29 01:58:03.678291]|program started
 [2024-11-29 01:58:06.823916]|Footer detected and removed.
 [2024-11-29 01:58:06.832425]|Decoded data saved to file: replace_polish_signs_1.py
+[2024-11-29 02:22:08.624003]|config successfully loaded from file
+[2024-11-29 02:22:08.624003]|program started
+[2024-11-29 02:22:13.797870]|Error reading file timestamp: [WinError 2] Nie mo¿na odnaleŸæ okreœlonego pliku: 'tape_index.json'
+[2024-11-29 02:22:24.467190]|config successfully loaded from file
+[2024-11-29 02:22:24.467190]|program started
+[2024-11-29 02:22:26.395852]|Error reading file timestamp: [WinError 2] Nie mo¿na odnaleŸæ okreœlonego pliku: 'tape_index.json'
+[2024-11-29 02:22:46.822345]|config successfully loaded from file
+[2024-11-29 02:22:46.822345]|program started
+[2024-11-29 02:22:49.914247]|Text file was saved successfully: e:\PycharmProjects\KCS-Utility\tape_index.wav
+[2024-11-29 02:31:54.729944]|config successfully loaded from file
+[2024-11-29 02:31:54.729944]|program started
+[2024-11-29 02:31:58.352331]|Error reading file timestamp: [WinError 2] Nie mo¿na odnaleŸæ okreœlonego pliku: 'tape_index.json'
+[2024-11-29 02:32:10.889638]|config successfully loaded from file
+[2024-11-29 02:32:10.890638]|program started
+[2024-11-29 02:32:11.616197]|config successfully loaded from file
+[2024-11-29 02:32:11.616197]|program started
+[2024-11-29 02:32:46.832296]|config successfully loaded from file
+[2024-11-29 02:32:46.832296]|program started
+[2024-11-29 02:32:47.403816]|config successfully loaded from file
+[2024-11-29 02:32:47.403816]|program started
+[2024-11-29 02:32:48.600379]|Text file was saved successfully: e:\PycharmProjects\KCS-Utility\tape_index.wav
+[2024-11-29 02:37:25.032653]|Found original filename: tape_index.json
+[2024-11-29 02:37:25.032653]|Found timestamp: 2024-11-29 02:20:30
+[2024-11-29 02:37:26.050304]|Decoded data saved to file: tape_index.json
+[2024-11-29 02:53:45.011198]|Found original filename: tape_index.json
+[2024-11-29 02:53:45.011198]|Found timestamp: 2024-11-29 02:28:14
+[2024-11-29 02:53:46.032202]|Footer detected and removed.
+[2024-11-29 02:53:46.191227]|Decoded data saved to file: tape_index.json
