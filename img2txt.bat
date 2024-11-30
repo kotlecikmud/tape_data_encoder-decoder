@@ -1,3 +1,3 @@
 @echo off
-python img2txt_BYTE.py
+python img2txt.py
 pause

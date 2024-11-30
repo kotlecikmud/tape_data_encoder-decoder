@@ -1,8 +1,3 @@
-# Filip Pawlowski 2023 (filippawlowski2012@gmail.com) 2023
-# ---------------------------------------------------------
-# based on: py-kcs by David Beazley (http://www.dabeaz.com)
-# ---------------------------------------------------------
-
 """"
 ---ABOUT---
 
@@ -36,7 +31,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-__version__ = "00.02.01.00"
+__version__ = "00.02.00.00"
 
 print(f"Text2Audio Encoder/Decoder v{__version__}\n{license}\nloading...")
 
@@ -64,11 +59,14 @@ LOG_F_NAME = resource_path(".log")
 CFG_MAIN_FILE = resource_path("config.json")
 BACKUP_CFG = """{
   "ZERO_FREQ": 1400,
-  "ONES_MULT": 2,
   "AMPLITUDE": 128,
   "CENTER": 128,
   "EXPLAIN_OPTIONS": false
 }"""
+
+# ZERO_FREQ - [Hz] higher the value the less likely decode success
+# AMPLITUDE - Amplitude of generated square waves
+# CENTER - Center point of generated waves
 
 INPUT_SIGN = '>>>'
 MAIN_MENU_OPTIONS = [
@@ -140,7 +138,6 @@ def load_cfg():
 
     main_keys_list = [
         "ZERO_FREQ",
-        "ONES_MULT",
         "AMPLITUDE",
         "CENTER",
         "EXPLAIN_OPTIONS"
@@ -329,11 +326,7 @@ def kcs_encode_wav():
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Create header with both timestamp and original filename
-    header = f"###TMS:{timestamp}###ORG:{original_filename}###\n"
-
-    # Create feeter (same format as header)
-    feeter = f"\n###FEET###ORG:{original_filename}###\n"
-    feeter_encoded_data = bytearray()
+    header = f"###TIMESTAMP:{timestamp}###ORIGINAL_FILE:{original_filename}###\n"
 
     with open(in_filename, "rb") as file:
         rawdata = file.read()
@@ -360,13 +353,6 @@ def kcs_encode_wav():
             # If CR, emit a short pause (10 NULL bytes)
             encoded_data.extend(null_pulse)
 
-    # Encode feeter data
-    for byteval in feeter.encode():
-        feeter_encoded_data.extend(kcs_encode_byte(byteval))
-
-    # Write feeter
-    encoded_data.extend(feeter_encoded_data)
-
     w.writeframes(encoded_data)
 
     # Write the trailer
@@ -380,74 +366,68 @@ def kcs_encode_wav():
 def kcs_decode_wav():
     """
     Decode a WAV file and extract timestamp, original filename, and content data.
-    Removes the footer (feeter) during decoding to clean up garbage data.
     Sets the decoded file's modification time based on the encoded timestamp.
     """
     file_to_decode = input('DECODE\nInput file name: ')
     timestamp = None
     original_filename = None
-    output_filename = "DECODED.txt"  # Fallback filename
 
     wf = wave.open(file_to_decode, "rb")
     sign_changes = generate_wav_sign_change_bits(wf)
     byte_stream = generate_bytes(sign_changes, wf.getframerate())
 
     buffer = bytearray()
-    decoded_data = []
-    footer_detected = False
-
     while True:
         linebreak = buffer.find(b'\n')
         if linebreak >= 0:
             line = buffer[:linebreak + 1].replace(b'\r\n', b'\n')
             buffer = buffer[linebreak + 1:]
 
-            # Decode line as string and check for header or footer
+            # Check if this line contains the header information
             line_str = line.decode('utf-8', errors='ignore')
-
-            # Check for header containing metadata
-            if '###TMS:' in line_str and timestamp is None:
+            if '###TIMESTAMP:' in line_str and timestamp is None:
                 try:
-                    timestamp_str = line_str.split('###TMS:')[1].split('###')[0]
+                    # Extract timestamp
+                    timestamp_str = line_str.split('###TIMESTAMP:')[1].split('###')[0]
                     timestamp = datetime.strptime(timestamp_str.strip(), "%Y-%m-%d %H:%M:%S")
-                    original_filename = line_str.split('###ORG:')[1].split('###')[0]
 
-                    # Log the found information
+                    # Extract original filename
+                    original_filename = line_str.split('###ORIGINAL_FILE:')[1].split('###')[0]
                     log_event(f"Found original filename: {original_filename}")
                     log_event(f"Found timestamp: {timestamp}")
 
-                    output_filename = original_filename if original_filename else "decoded.txt"
+                    # Use original filename for output if possible
+                    if original_filename:
+                        output_filename = original_filename
+                    else:
+                        output_filename = "decoded.txt"
+
+                    # If file already exists, add a number to prevent overwriting
                     base, ext = os.path.splitext(output_filename)
                     counter = 1
                     while os.path.exists(output_filename):
                         output_filename = f"{base}_{counter}{ext}"
                         counter += 1
-                    continue  # Skip writing header to file
+
+                    continue  # Skip writing the header line to the output file
                 except Exception as e:
                     log_event(f"Error parsing header: {e}")
+                    output_filename = "decoded.txt"  # Fallback filename
 
-            # Check if the current line matches the footer pattern
-            if '###FEET###' in line_str:
-                log_event("Footer detected and removed.")
-                footer_detected = True
-                continue
-
-            # Add line to decoded data if not footer
-            if not footer_detected:
-                decoded_data.append(line)
+            with open(output_filename, "ab") as outf:
+                outf.write(line)
         else:
             fragment = bytes(byte for byte in islice(byte_stream, 80) if byte)
             if not fragment:
-                # Write decoded data to file
-                with open(output_filename, "wb") as outf:
-                    outf.writelines(decoded_data)
+                with open(output_filename, "ab") as outf:
+                    outf.write(buffer)
 
-                # Set file modification time if timestamp exists
+                # Set file modification time if timestamp was found
                 if timestamp:
                     timestamp_epoch = timestamp.timestamp()
                     os.utime(output_filename, (timestamp_epoch, timestamp_epoch))
 
-                log_event(f"Decoded data saved to file: {output_filename}")
+                log_event(f"Decoded data were saved to file: {output_filename}")
                 break
             buffer.extend(fragment)
 
@@ -455,7 +435,7 @@ def kcs_decode_wav():
 if __name__ == '__main__':
     load_cfg()
 
-    ONES_FREQ = config_main["ZERO_FREQ"] * config_main["ONES_MULT"]  # Hz
+    ONES_FREQ = config_main["ZERO_FREQ"] * 2  # Hz
     FRAMERATE = ONES_FREQ * 2  # Hz
 
     # Create the wave patterns that encode 1s and 0s
@@ -471,16 +451,12 @@ if __name__ == '__main__':
         template = "({}) {}"
 
     loading_animation.stop()
-    log_event("program started")
     # === UI ===
 
     while True:
         cls_console()
-
-        print(f"Text2Audio Encoder/Decoder v{__version__}")
-
-        # displaying the list in the main menu
-        for i, (choice_main_menu, description) in enumerate(MAIN_MENU_OPTIONS, 1):
+        for i, (choice_main_menu, description) in enumerate(MAIN_MENU_OPTIONS,
+                                                            1):  # displaying the list in the main menu
             print(template.format(i, choice_main_menu, description))
 
         usr_input = input(f'{INPUT_SIGN}').strip()
@@ -500,5 +476,5 @@ if __name__ == '__main__':
                     kcs_decode_wav()
 
                 elif choice_main_menu == 'Exit program':
-                    log_event("exiting program")
+                    log_event("exiting from menu")
                     exit(0)

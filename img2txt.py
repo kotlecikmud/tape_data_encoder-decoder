@@ -1,10 +1,10 @@
 """
-img2txt_BYTE.py
+img2txt.py
 Filip Pawlowski 2023
 filippawlowski2012@gmail.com
 """
 
-__version__ = "00.02.02.00"
+__version__ = "00.03.00.00"
 
 import os
 import time
@@ -12,7 +12,10 @@ import math
 import threading
 from PIL import Image
 
-SEPARATOR = b'####'  # Define your separator byte
+ROW_START_MARKER = b"\xAA\xBB\xCC\xDD"
+ROW_END_MARKER = b"\xDD\xCC\xBB\xAA"
+SEPARATOR = b"\x00\xFF\x00\xFF"
+
 MODES = {
     "1": "MONO2",
     "2": "MONO4",
@@ -499,6 +502,7 @@ def run_length_decode(encoded_data):
 def encode(image_path, mode="MONO8"):
     """
     General-purpose encoding function for multiple color modes.
+    Now includes newline character after each row for improved error resilience.
 
     Args:
         image_path (str): Path to the input image.
@@ -525,45 +529,57 @@ def encode(image_path, mode="MONO8"):
     encoded_data.extend(mode.encode('utf-8'))
     encoded_data.extend(SEPARATOR)
 
-    # Encode based on mode
-    if mode == "MONO2":
-        grayscale_pixels = [round(sum(pixel) / 3) for pixel in pixels]
-        quantized_pixels = [(p * 3) // 255 for p in grayscale_pixels]  # Scale 0-255 to 0-3
-        packed_data = pack_2bit_data(quantized_pixels)
-        encoded_data.extend(packed_data)
-    elif mode == "MONO4":
-        grayscale_pixels = [round(sum(pixel) / 3) for pixel in pixels]
-        quantized_pixels = [(p * 4) // 255 for p in grayscale_pixels]  # Scale 0-255 to 0-3
-        packed_data = pack_4bit_data(quantized_pixels)
-        encoded_data.extend(packed_data)
-    elif mode == "MONO8":
-        grayscale_pixels = [round(sum(pixel) / 3) for pixel in pixels]  # Convert to grayscale
-        run_length_data = run_length_encode(grayscale_pixels)  # Perform RLE
-        # Serialize the RLE data into bytes (value and count pairs)
-        for value, count in run_length_data:
-            encoded_data.append(value)  # Add the grayscale value (1 byte)
-            encoded_data.extend(count.to_bytes(4, 'big'))  # Add the count (4 bytes for safety)
-    elif mode == "RGB4":
-        quantized_pixels = [
-            ((pixel[0] * 15) // 255, (pixel[1] * 15) // 255, (pixel[2] * 15) // 255)
-            for pixel in pixels
-        ]
-        packed_data = pack_4bit_data([val for p in quantized_pixels for val in p])
-        encoded_data.extend(packed_data)
-    elif mode == "RGB8":
-        encoded_data.extend(pack_rgb_pixels(pixels))
+    # Encode based on mode with row-wise processing
+    def encode_row(row_pixels):
+        if mode == "MONO2":
+            quantized_pixels = [(p * 3) // 255 for p in row_pixels]
+            packed_data = pack_2bit_data(quantized_pixels)
+            return packed_data
+        elif mode == "MONO4":
+            quantized_pixels = [(p * 4) // 255 for p in row_pixels]
+            packed_data = pack_4bit_data(quantized_pixels)
+            return packed_data
+        elif mode == "MONO8":
+            run_length_data = run_length_encode(row_pixels)
+            row_encoded = bytearray()
+            for value, count in run_length_data:
+                row_encoded.append(value)
+                row_encoded.extend(count.to_bytes(4, 'big'))
+            return row_encoded
+        elif mode == "RGB4":
+            quantized_pixels = [
+                ((pixel[0] * 15) // 255, (pixel[1] * 15) // 255, (pixel[2] * 15) // 255)
+                for pixel in row_pixels
+            ]
+            packed_data = pack_4bit_data([val for p in quantized_pixels for val in p])
+            return packed_data
+        elif mode == "RGB8":
+            return pack_rgb_pixels(row_pixels)
+
+    # Process image row by row
+    for y in range(height):
+        row_start = y * width
+        row_pixels = pixels[row_start:row_start + width]
+
+        # Determine pixel processing based on mode
+        if mode in ["MONO2", "MONO4"]:
+            row_pixels = [round(sum(pixel) / 3) for pixel in row_pixels]
+
+        row_encoded = encode_row(row_pixels)
+        encoded_data.extend(row_encoded)
+        encoded_data.append(ord('\n'))  # Add newline after each row
 
     # Save encoded file
     with open(output_filepath, "wb") as f:
         f.write(encoded_data)
 
-    print(f"Encoding completed in {time.time() - start_time:.2f} seconds.")
+    print(f"Encoding completed in {time.time() - start_time:.2f} seconds.\n{output_filepath=}")
     return output_filepath
 
 
 def decode(file_path):
     """
-    General-purpose decoding function for multiple color modes.
+    Decodes the encoded file into an image.
 
     Args:
         file_path (str): Path to the encoded file.
@@ -573,61 +589,87 @@ def decode(file_path):
     """
     start_time = time.time()
 
-    # Read encoded file
+    # Read the encoded file
     with open(file_path, "rb") as f:
         data = f.read()
 
-    # Parse header
-    width = int.from_bytes(data[:4], 'big')
-    height = int.from_bytes(data[4:8], 'big')
+    try:
+        # Parse header
+        width = int.from_bytes(data[:4], 'big')
+        height = int.from_bytes(data[4:8], 'big')
 
-    # Find the separator to extract the mode
-    mode_end = data.index(SEPARATOR)
-    mode = data[8:mode_end].decode('utf-8')
+        # Locate the separator
+        try:
+            mode_end = data.index(SEPARATOR)
+        except ValueError:
+            raise ValueError(f"Separator {SEPARATOR} not found in the file. Ensure the file format is correct.")
 
-    # Extract the body (pixel data) after the separator
-    body = data[mode_end + len(SEPARATOR):]
+        mode = data[8:mode_end].decode('utf-8')
 
-    # Debug output
-    print(f"Decoding mode: {mode}")
+        # Extract pixel data
+        body = data[mode_end + len(SEPARATOR):]
 
-    pixels = []
-    if mode == "MONO2":
-        # Check if the body length matches the expected size for MONO2
-        if len(body) != width * height // 4:
-            raise ValueError(
-                f"Invalid body length for MONO2 mode. Expected {width * height // 4}, but got {len(body)}.")
+        # Debug output
+        print(f"Decoding mode: {mode}")
+        print(f"Image dimensions: {width}x{height}")
 
-        decoded_pixels = unpack_2bit_data(body, width * height)
-        pixels = [(p * 85, p * 85, p * 85) for p in decoded_pixels]  # Scale 0-3 to 0-255
-    elif mode == "MONO4":
-        if len(body) < (width * height) // 2:  # Check if the body length is valid for MONO4
-            raise ValueError(
-                f"Invalid body length for MONO4 mode. Expected {(width * height) // 2}, but got {len(body)}.")
-        decoded_pixels = unpack_4bit_data(body, width * height)
-        pixels = [(p * 17, p * 17, p * 17) for p in decoded_pixels]  # Scale 0-15 to 0-255
-    elif mode == "MONO8":
-        decoded_pixels = run_length_decode(body)
-        pixels = [(value, value, value) for value in decoded_pixels]
-    elif mode == "RGB4":
-        decoded_pixels = unpack_4bit_data(body, (width * height) * 3)
-        pixels = [(decoded_pixels[i] * 17, decoded_pixels[i + 1] * 17, decoded_pixels[i + 2] * 17)
-                  for i in range(0, len(decoded_pixels), 3)]
-    elif mode == "RGB8":
-        for i in range(0, len(body), 3):
-            r = body[i]
-            g = body[i + 1]
-            b = body[i + 2]
-            pixels.append((r, g, b))
+        # Decode rows
+        pixels = []
+        row_data = bytearray()
 
-    # Create and save the image
-    image = Image.new("RGB", (width, height))
-    image.putdata(pixels)
+        def decode_row(row_body):
+            # Calculate expected bytes per row
+            expected_bytes = width if mode.startswith("MONO") else width * 3
+            if len(row_body) < expected_bytes:
+                row_body += b'\x00' * (expected_bytes - len(row_body))  # Pad with black
+            elif len(row_body) > expected_bytes:
+                row_body = row_body[:expected_bytes]  # Truncate excess
 
-    output_filepath = os.path.splitext(file_path)[0] + "_decoded.png"
-    image.save(output_filepath)
-    print(f"Decoding completed in {time.time() - start_time:.2f} seconds.")
-    return output_filepath
+            # Decode based on mode
+            if mode == "MONO2":
+                decoded_pixels = unpack_2bit_data(row_body, width)
+                return [(p * 85, p * 85, p * 85) for p in decoded_pixels]
+            elif mode == "MONO4":
+                decoded_pixels = unpack_4bit_data(row_body, width)
+                return [(p * 17, p * 17, p * 17) for p in decoded_pixels]
+            elif mode == "MONO8":
+                decoded_pixels = run_length_decode(row_body)
+                return [(value, value, value) for value in decoded_pixels]
+            elif mode == "RGB4":
+                decoded_pixels = unpack_4bit_data(row_body, width * 3)
+                return [(decoded_pixels[i] * 17, decoded_pixels[i + 1] * 17, decoded_pixels[i + 2] * 17)
+                        for i in range(0, len(decoded_pixels), 3)]
+            elif mode == "RGB8":
+                return [(row_body[i], row_body[i + 1], row_body[i + 2])
+                        for i in range(0, len(row_body), 3)]
+
+        # Process body row by row
+        for byte in body:
+            if byte == ord('\n'):
+                row_pixels = decode_row(row_data)
+                pixels.extend(row_pixels)
+                row_data.clear()
+            else:
+                row_data.append(byte)
+
+        # Process the last row
+        if row_data:
+            row_pixels = decode_row(row_data)
+            pixels.extend(row_pixels)
+
+        # Create the image
+        image = Image.new("RGB", (width, height))
+        image.putdata(pixels)
+
+        # Save the decoded image
+        output_filepath = os.path.splitext(file_path)[0] + "_decoded.png"
+        image.save(output_filepath)
+        print(f"Decoding completed in {time.time() - start_time:.2f} seconds.")
+        return output_filepath
+
+    except Exception as e:
+        print(f"Error during decoding: {e}")
+        return None
 
 
 def main():
@@ -649,8 +691,7 @@ def main():
             \n5-RGB8\
             \n>>> ")
 
-            selected_mode = MODES.get(mode, "COLOR")
-            encode(image_path, selected_mode)
+            encode(image_path, MODES.get(mode, "MONO8"))
 
         elif choice == "2":
             txt_path = input("Enter the path to the txt file: ")
