@@ -1,0 +1,46 @@
+[2024-11-30 23:33:09.728557]|config file was not found
+[2024-11-30 23:33:09.729557]|backup config written to E:\PycharmProjects\tape_data_encoder-decoder\config.json
+[2024-11-30 23:33:09.834210]|config successfully loaded from file
+[2024-11-30 23:34:39.247136]|config successfully loaded from file
+[2024-11-30 23:39:57.669696]|config successfully loaded from file
+[2024-11-30 23:41:10.117705]|config file was not found
+[2024-11-30 23:41:10.117705]|backup config written to E:\PycharmProjects\tape_data_encoder-decoder\config.json
+[2024-11-30 23:41:10.223307]|config successfully loaded from file
+[2024-11-30 23:41:10.223307]|program started
+[2024-11-30 23:41:28.215341]|Text file was saved successfully: e:\PycharmProjects\TEST_FILES\cake_recipies_en.wav
+[2024-11-30 23:41:46.665704]|Updated configuration saved to file.
+[2024-11-30 23:41:49.090342]|Text file was saved successfully: e:\PycharmProjects\TEST_FILES\cake_recipies_en.wav
+[2024-12-01 00:45:32.385152]|config successfully loaded from file
+[2024-12-01 00:45:32.385152]|program started
+[2024-12-01 00:45:46.485617]|Updated configuration saved to file.
+[2024-12-01 00:45:56.398223]|Text file was saved successfully: base64_.wav
+[2024-12-01 00:48:46.834611]|config successfully loaded from file
+[2024-12-01 00:48:46.834611]|program started
+[2024-12-01 00:49:13.976970]|config successfully loaded from file
+[2024-12-01 00:49:13.976970]|program started
+[2024-12-01 00:49:34.522714]|config successfully loaded from file
+[2024-12-01 00:49:34.522714]|program started
+[2024-12-01 00:49:58.473173]|config successfully loaded from file
+[2024-12-01 00:49:58.473173]|program started
+[2024-12-01 00:50:05.026460]|Found original filename: base64_.py
+[2024-12-01 00:50:05.026460]|Found timestamp: 2024-11-30 22:18:52
+[2024-12-01 00:50:05.121033]|Decoded data were saved to file: base64__1.py
+[2024-12-01 00:50:50.163159]|config successfully loaded from file
+[2024-12-01 00:50:50.163159]|program started
+[2024-12-01 00:50:58.104942]|Updated configuration saved to file.
+[2024-12-01 00:51:05.090973]|Text file was saved successfully: base64_.wav
+[2024-12-01 00:52:43.356119]|config successfully loaded from file
+[2024-12-01 00:52:43.356119]|program started
+[2024-12-01 00:52:57.718690]|Text file was saved successfully: base64_.wav
+[2024-12-01 00:56:25.449083]|Found original filename: base64_.py
+[2024-12-01 00:56:25.449083]|Found timestamp: 2024-11-30 22:18:52
+[2024-12-01 00:56:25.641118]|Decoded data were saved to file: base64__1.py
+[2024-12-01 00:57:30.950299]|config successfully loaded from file
+[2024-12-01 00:57:30.950299]|program started
+[2024-12-01 00:57:37.698224]|Updated configuration saved to file.
+[2024-12-01 00:57:39.435616]|Text file was saved successfully: README.wav
+[2024-12-01 01:03:10.152949]|config successfully loaded from file
+[2024-12-01 01:03:10.152949]|program started
+[2024-12-01 01:03:11.931488]|Found original filename: README.md
+[2024-12-01 01:03:11.931488]|Found timestamp: 2024-11-30 22:18:52
+[2024-12-01 01:03:12.229027]|Decoded data were saved to file: README_1.md

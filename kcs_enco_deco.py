@@ -1,4 +1,9 @@
-""""
+# Filip Pawlowski 2023 (filippawlowski2012@gmail.com) 2023
+# ---------------------------------------------------------
+# based on: py-kcs by David Beazley (http://www.dabeaz.com)
+# ---------------------------------------------------------
+
+"""
 ---ABOUT---
 
 Custom tool for encoding text data as audio, based on KCS format and "py-kcs by David Beazley (http://www.dabeaz.com)".
@@ -31,7 +36,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-__version__ = "00.02.00.00"
+__version__ = "00.02.01.00"
 
 print(f"Text2Audio Encoder/Decoder v{__version__}\n{license}\nloading...")
 
@@ -59,19 +64,17 @@ LOG_F_NAME = resource_path(".log")
 CFG_MAIN_FILE = resource_path("config.json")
 BACKUP_CFG = """{
   "ZERO_FREQ": 1400,
+  "ONES_MULT": 2,
   "AMPLITUDE": 128,
   "CENTER": 128,
   "EXPLAIN_OPTIONS": false
 }"""
 
-# ZERO_FREQ - [Hz] higher the value the less likely decode success
-# AMPLITUDE - Amplitude of generated square waves
-# CENTER - Center point of generated waves
-
 INPUT_SIGN = '>>>'
 MAIN_MENU_OPTIONS = [
     ('Encode text', 'Gets text UTF8 file and encodes into WAV file'),
     ('Decode text', 'Gets WAV file and decodes to original file.'),
+    ('Adjust Frequencies', 'Modify ZERO_FREQ and ONES_MULT values'),
     ('Exit program', 'Exits Program.'),
 ]
 
@@ -116,28 +119,11 @@ def log_event(entry: str = ""):
 
 
 def load_cfg():
-    """
-    Load setup data from the JSON file (CFG_MAIN_FILE) and assign values to their respective variables.
-
-    The function initializes an empty dictionary 'config_main' with keys representing various setup parameters.
-    It attempts to load the setup data from the JSON file using the 'json.load' function.
-    Values from the loaded data are assigned to the corresponding keys in 'config_main'.
-    Finally, the values are unpacked from 'config_main' into individual global variables using 'globals().update'.
-
-    In case of an exception during the process, an error message is written to the system log file (sys_log_file).
-
-    Returns:
-        dict: A dictionary containing the loaded setup parameters and their values.
-
-    Usage:
-        <call> load_cfg()
-        # The loaded setup parameters and values are available in the 'config' dictionary.
-        # Additionally, the function appends a log entry in the system log file (sys_log_file).
-    """
     global config_main
 
     main_keys_list = [
         "ZERO_FREQ",
+        "ONES_MULT",
         "AMPLITUDE",
         "CENTER",
         "EXPLAIN_OPTIONS"
@@ -150,7 +136,14 @@ def load_cfg():
             _config_main = json.load(f)
 
         for param_m in config_main:
-            config_main[param_m] = _config_main.get(param_m)
+            config_main[param_m] = _config_main.get(param_m, None)
+
+        # Ensure fallback defaults
+        config_main["ZERO_FREQ"] = config_main["ZERO_FREQ"] or 1400
+        config_main["ONES_MULT"] = config_main["ONES_MULT"] or 2
+        config_main["AMPLITUDE"] = config_main["AMPLITUDE"] or 128
+        config_main["CENTER"] = config_main["CENTER"] or 128
+        config_main["EXPLAIN_OPTIONS"] = config_main["EXPLAIN_OPTIONS"] or False
 
         globals().update(config_main)
 
@@ -159,8 +152,8 @@ def load_cfg():
     except FileNotFoundError:
         log_event("config file was not found")
         restore_backup_config()
-        time.sleep(0.1)  # Short delay to ensure the file system has time to finish writing
-        load_cfg()  # Retry loading config after restoring
+        time.sleep(0.1)
+        load_cfg()
 
     except Exception as e:
         log_event(str(e))
@@ -170,16 +163,44 @@ def load_cfg():
 def write_backup_config():
     with open(CFG_MAIN_FILE, "w") as backup_cfg:
         backup_cfg.write(BACKUP_CFG)
-        backup_cfg.flush()  # Ensure all data is written to disk
+        backup_cfg.flush()
         log_event(f"backup config written to {CFG_MAIN_FILE}")
 
 
 def restore_backup_config():
-    """
-    Restore the configuration file from the backup.
-    """
     if not os.path.isfile(CFG_MAIN_FILE):
         write_backup_config()
+
+
+def adjust_frequencies():
+    global config_main, ONES_FREQ, FRAMERATE, one_pulse, zero_pulse
+
+    try:
+        zero_freq = float(input(f"Enter ZERO_FREQ (current: {config_main['ZERO_FREQ']} Hz): "))
+        ones_mult = float(input(f"Enter ONES_MULT (current: {config_main['ONES_MULT']}): "))
+
+        # Update the configuration and recompute dependent values
+        config_main["ZERO_FREQ"] = zero_freq
+        config_main["ONES_MULT"] = ones_mult
+
+        ONES_FREQ = zero_freq * ones_mult
+        FRAMERATE = ONES_FREQ * 2
+
+        # Recreate the wave patterns
+        one_pulse = make_square_wave(ONES_FREQ, FRAMERATE) * 8
+        zero_pulse = make_square_wave(config_main["ZERO_FREQ"], FRAMERATE) * 4
+
+        print("Frequencies updated successfully!")
+        time.sleep(1)
+
+        # Save updated configuration to file
+        with open(CFG_MAIN_FILE, "w") as f:
+            json.dump(config_main, f)
+            log_event("Updated configuration saved to file.")
+
+    except ValueError:
+        print("Invalid input. Please enter valid numbers.")
+        time.sleep(1)
 
 
 # ===============
@@ -435,7 +456,7 @@ def kcs_decode_wav():
 if __name__ == '__main__':
     load_cfg()
 
-    ONES_FREQ = config_main["ZERO_FREQ"] * 2  # Hz
+    ONES_FREQ = config_main["ZERO_FREQ"] * config_main["ONES_MULT"]  # Hz
     FRAMERATE = ONES_FREQ * 2  # Hz
 
     # Create the wave patterns that encode 1s and 0s
@@ -451,12 +472,16 @@ if __name__ == '__main__':
         template = "({}) {}"
 
     loading_animation.stop()
+    log_event("program started")
     # === UI ===
 
     while True:
         cls_console()
-        for i, (choice_main_menu, description) in enumerate(MAIN_MENU_OPTIONS,
-                                                            1):  # displaying the list in the main menu
+
+        print(f"Text2Audio Encoder/Decoder v{__version__}")
+
+        # displaying the list in the main menu
+        for i, (choice_main_menu, description) in enumerate(MAIN_MENU_OPTIONS, 1):
             print(template.format(i, choice_main_menu, description))
 
         usr_input = input(f'{INPUT_SIGN}').strip()
@@ -475,6 +500,9 @@ if __name__ == '__main__':
                 elif choice_main_menu == 'Decode text':
                     kcs_decode_wav()
 
+                elif choice_main_menu == 'Adjust Frequencies':
+                    adjust_frequencies()
+
                 elif choice_main_menu == 'Exit program':
-                    log_event("exiting from menu")
+                    log_event("exiting program")
                     exit(0)
