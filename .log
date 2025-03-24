@@ -44,3 +44,14 @@
 [2024-12-01 01:03:11.931488]|Found original filename: README.md
 [2024-12-01 01:03:11.931488]|Found timestamp: 2024-11-30 22:18:52
 [2024-12-01 01:03:12.229027]|Decoded data were saved to file: README_1.md
+[2025-03-24 16:31:04.119448]|config successfully loaded from file
+[2025-03-24 16:31:04.120444]|program started
+[2025-03-24 16:31:54.908117]|config successfully loaded from file
+[2025-03-24 16:31:54.908117]|program started
+[2025-03-24 16:31:58.518415]|config successfully loaded from file
+[2025-03-24 16:31:58.518415]|program started
+[2025-03-24 16:32:11.136474]|config successfully loaded from file
+[2025-03-24 16:32:11.136474]|program started
+[2025-03-24 16:32:44.501753]|Found original filename: .log
+[2025-03-24 16:32:44.501753]|Found timestamp: 2025-03-24 16:32:11
+[2025-03-24 16:32:44.602038]|Decoded data were saved to file: .log_1

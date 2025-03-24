@@ -15,7 +15,7 @@ Contact: filippawlowski2012@gmail.com
 
 license = """MIT License
 
-Copyright (c) 2024 Filip Pawłowski(kotlecikmud)
+Copyright (c) 2025 Filip Pawłowski(kotlecikmud)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
