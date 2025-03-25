@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1c593ae6-e6aa-4036-9dfa-e4b683848f3e" name="Changes" comment="gen_qr v.24.03.2025.01b" />
+    <list default="true" id="1c593ae6-e6aa-4036-9dfa-e4b683848f3e" name="Changes" comment="-">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -187,12 +189,21 @@
       <option name="project" value="LOCAL" />
       <updated>1742830491437</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="-">
+      <option name="closed" value="true" />
+      <created>1742830912855</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1742830912855</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="00.02.00.00" />
     <MESSAGE value="gen_qr v.24.03.2025.01b" />
-    <option name="LAST_COMMIT_MESSAGE" value="gen_qr v.24.03.2025.01b" />
+    <MESSAGE value="-" />
+    <option name="LAST_COMMIT_MESSAGE" value="-" />
   </component>
 </project>
