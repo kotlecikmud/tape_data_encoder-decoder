@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1c593ae6-e6aa-4036-9dfa-e4b683848f3e" name="Changes" comment="-">
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.log" beforeDir="false" afterPath="$PROJECT_DIR$/.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kcs_enco_deco.py" beforeDir="false" afterPath="$PROJECT_DIR$/kcs_enco_deco.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,20 +26,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.RCA COSMAC.executor&quot;: &quot;Run&quot;,
-    &quot;Python.gen_qr.executor&quot;: &quot;Run&quot;,
-    &quot;Python.img2txt.executor&quot;: &quot;Run&quot;,
-    &quot;Python.img2txt_BYTE.executor&quot;: &quot;Run&quot;,
-    &quot;Python.img2txt_UTF8.executor&quot;: &quot;Run&quot;,
-    &quot;Python.kcs_enco_deco.executor&quot;: &quot;Run&quot;,
-    &quot;Python.new_kcs.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.RCA COSMAC.executor": "Run",
+    "Python.gen_qr.executor": "Run",
+    "Python.img2txt.executor": "Run",
+    "Python.img2txt_BYTE.executor": "Run",
+    "Python.img2txt_UTF8.executor": "Run",
+    "Python.kcs_enco_deco.executor": "Run",
+    "Python.new_kcs.executor": "Run",
+    "Python.replace_polish_signs.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master"
   }
-}</component>
-  <component name="RunManager" selected="Python.img2txt">
+}]]></component>
+  <component name="RunManager" selected="Python.kcs_enco_deco">
     <configuration name="RCA COSMAC" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="tape_data_encoder-decoder" />
       <option name="ENV_FILES" value="" />
@@ -125,7 +129,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="new_kcs" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="replace_polish_signs" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="tape_data_encoder-decoder" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -138,7 +142,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/new_kcs.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/replace_polish_signs.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -149,11 +153,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.img2txt" />
         <item itemvalue="Python.kcs_enco_deco" />
+        <item itemvalue="Python.replace_polish_signs" />
+        <item itemvalue="Python.img2txt" />
         <item itemvalue="Python.gen_qr" />
         <item itemvalue="Python.RCA COSMAC" />
-        <item itemvalue="Python.new_kcs" />
       </list>
     </recent_temporary>
   </component>

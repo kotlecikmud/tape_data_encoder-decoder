@@ -36,7 +36,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-__version__ = "00.02.01.00"
+__version__ = "00.02.02.00"
 
 print(f"Text2Audio Encoder/Decoder v{__version__}\n{license}\nloading...")
 
@@ -382,6 +382,7 @@ def kcs_encode_wav():
 
     loading_animation.stop()
     log_event(f"Text file was saved successfully: {out_filename}")
+    time.sleep(1)
 
 
 def kcs_decode_wav():
@@ -449,6 +450,7 @@ def kcs_decode_wav():
                     os.utime(output_filename, (timestamp_epoch, timestamp_epoch))
 
                 log_event(f"Decoded data were saved to file: {output_filename}")
+                time.sleep(1)
                 break
             buffer.extend(fragment)
 
