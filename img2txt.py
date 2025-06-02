@@ -672,37 +672,37 @@ def decode(file_path):
         return None
 
 
-def main():
-    while True:
-        # Menu selection
-        # clear_terminal()
-        choice = input(f"img2txt {__version__}\nChoose option (1-4):\n"
-                       "1) Encode Image\n"
-                       "2) Decode Encoded File\n"
-                       "3) Exit\n>>>")
-
-        if choice == "1":
-            image_path = input("Provide the path to the image file: ")
-            mode = input("Choose color mode (default=COLOR):\
-            \n1-MONO2\
-            \n2-MONO4\
-            \n3-MONO8\
-            \n4-RGB4\
-            \n5-RGB8\
-            \n>>> ")
-
-            encode(image_path, MODES.get(mode, "MONO8"))
-
-        elif choice == "2":
-            txt_path = input("Enter the path to the txt file: ")
-            decode(txt_path)
-
-        elif choice == "3":
-            break
-
-        else:
-            print("Invalid choice.")
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     while True:
+#         # Menu selection
+#         # clear_terminal()
+#         choice = input(f"img2txt {__version__}\nChoose option (1-4):\n"
+#                        "1) Encode Image\n"
+#                        "2) Decode Encoded File\n"
+#                        "3) Exit\n>>>")
+# 
+#         if choice == "1":
+#             image_path = input("Provide the path to the image file: ")
+#             mode = input("Choose color mode (default=COLOR):\
+#             \n1-MONO2\
+#             \n2-MONO4\
+#             \n3-MONO8\
+#             \n4-RGB4\
+#             \n5-RGB8\
+#             \n>>> ")
+# 
+#             encode(image_path, MODES.get(mode, "MONO8"))
+# 
+#         elif choice == "2":
+#             txt_path = input("Enter the path to the txt file: ")
+#             decode(txt_path)
+# 
+#         elif choice == "3":
+#             break
+# 
+#         else:
+#             print("Invalid choice.")
+# 
+# 
+# if __name__ == "__main__":
+    # main()
