@@ -36,9 +36,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-__version__ = "00.02.02.00"
+__version__ = "00.03.00.00"
 
-print(f"Text2Audio Encoder/Decoder v{__version__}\n{license}\nloading...")
+print("loading...")
 
 import os
 import wave
@@ -649,6 +649,7 @@ def kcs_decode_wav(file_to_decode, output_path_base, config):
 
 
 if __name__ == "__main__":
+    print(f"Text2Audio Encoder/Decoder v{__version__}\n{license}")
     loading_animation.start()
     load_cfg()  # Loads global config_main
 
@@ -669,130 +670,82 @@ if __name__ == "__main__":
         template = "({}) {}"
 
     loading_animation.stop()
-    log_event("program started / module loaded")
+    log_event("program started")
 
-    # === UI (Commented out as per refactoring instructions for all_in_one_app.py to handle menu) ===
-    # log_event("Main menu loop is disabled. Script can be used as a module.")
-    #
-    # # Example of how to call refactored functions for testing in standalone mode:
-    # # Ensure you have a 'test.txt' file or change the input filename.
-    # test_encode = False # Set to True to test encoding
-    # if test_encode:
-    #     log_event("Testing encoding functionality...")
-    #     test_in_file = "test.txt"
-    #     # Create dummy test file if it doesn't exist
-    #     if not os.path.exists(test_in_file):
-    #         with open(test_in_file, "w") as f:
-    #             f.write("This is a test file for kcs_encode_wav.")
-    #     test_out_file = get_filename_with_new_extension(test_in_file, 'wav')
-    #     loading_animation.start()
-    #     if kcs_encode_wav(test_in_file, test_out_file, config_main):
-    #         loading_animation.stop()
-    #         log_event(f"Standalone encode successful: {test_out_file}")
-    #     else:
-    #         loading_animation.stop()
-    #         log_event(f"Standalone encode failed for {test_in_file}.")
-    #     time.sleep(1)
+    while True:
+        cls_console()
 
-    # test_decode = False # Set to True to test decoding
-    # if test_decode:
-    #     log_event("Testing decoding functionality...")
-    #     # Assuming an encoded file 'test.wav' exists from a previous encoding test
-    #     test_decode_in_file = "test.wav"
-    #     if os.path.exists(test_decode_in_file):
-    #         out_base = os.path.splitext(os.path.basename(test_decode_in_file))[0] + "_decoded"
-    #         loading_animation.start()
-    #         decoded_file = kcs_decode_wav(test_decode_in_file, out_base, config_main)
-    #         if decoded_file:
-    #             loading_animation.stop()
-    #             log_event(f"Standalone decode successful: {decoded_file}")
-    #         else:
-    #             loading_animation.stop()
-    #             log_event(f"Standalone decode failed for {test_decode_in_file}.")
-    #     else:
-    #         log_event(f"Decode test skipped: Input file {test_decode_in_file} not found.")
-    #     time.sleep(1)
+        print(f"Text2Audio Encoder/Decoder v{__version__}")
 
-    # test_adjust_freq = False # Set to True to test frequency adjustment
-    # if test_adjust_freq:
-    #     log_event("Testing frequency adjustment (interactive)...")
-    #     # Pass a copy of config_main to avoid direct modification if preferred,
-    #     # though adjust_frequencies is designed to update the global if it's passed.
-    #     # For this test, we'll pass the global config_main directly.
-    #     updated_cfg = adjust_frequencies(config_main) # Will prompt for input
-    #     if updated_cfg:
-    #         # Global config_main is already updated by adjust_frequencies if it was passed directly
-    #         # Re-initialize global pulses based on updated_cfg for standalone mode consistency
-    #         ONES_FREQ = config_main["ZERO_FREQ"] * config_main["ONES_MULT"]
-    #         FRAMERATE = ONES_FREQ * 2
-    #         one_pulse = make_square_wave(ONES_FREQ, FRAMERATE, config_main) * 8
-    #         zero_pulse = make_square_wave(config_main["ZERO_FREQ"], FRAMERATE, config_main) * 4
-    #         null_pulse = ((zero_pulse * 9) + (one_pulse * 2)) * 10
-    #         log_event("Frequencies updated and global pulses re-initialized for standalone mode.")
-    #     else:
-    #         log_event("Frequency adjustment cancelled or failed.")
-    #     time.sleep(1)
+        # displaying the list in the main menu
+        for i, (choice_main_menu, description) in enumerate(MAIN_MENU_OPTIONS, 1):
+            print(template.format(i, choice_main_menu, description))
 
-    # Original menu loop:
-    # while True:
-    #     cls_console()
-    #
-    #     print(f"Text2Audio Encoder/Decoder v{__version__}")
-    #
-    #     # displaying the list in the main menu
-    #     for i, (choice_main_menu, description) in enumerate(MAIN_MENU_OPTIONS, 1):
-    #         print(template.format(i, choice_main_menu, description))
-    #
-    #     usr_input = input(f'{INPUT_SIGN}').strip()
-    #
-    #     if usr_input.isdigit():  # check if a digit is entered
-    #         index = int(usr_input) - 1
-    #         if 0 <= index < len(MAIN_MENU_OPTIONS):  # check if the digit is within the range
-    #             usr_input = MAIN_MENU_OPTIONS[index][0]
-    #
-    #     for choice_main_menu, description in MAIN_MENU_OPTIONS:
-    #         if usr_input == choice_main_menu:
-    #
-    #             if choice_main_menu == 'Encode text':
-    #                 # This would now need to gather inputs and pass to the refactored kcs_encode_wav
-    #                 in_file = input("ENCODE\nInput file name: ")
-    #                 out_file = get_filename_with_new_extension(in_file, 'wav')
-    #                 loading_animation.start()
-    #                 if kcs_encode_wav(in_file, out_file, config_main): # Pass global config_main for standalone
-    #                     loading_animation.stop()
-    #                     log_event(f"Standalone encode successful: {out_file}")
-    #                 else:
-    #                     loading_animation.stop()
-    #                     log_event(f"Standalone encode failed.")
-    #                 time.sleep(1)
-    #
-    #             elif choice_main_menu == 'Decode text':
-    #                 # This would now need to gather inputs and pass to the refactored kcs_decode_wav
-    #                 in_file = input('DECODE\nInput file name: ')
-    #                 # Base for output, e.g., derived from input or a fixed name
-    #                 out_base = os.path.splitext(os.path.basename(in_file))[0]
-    #                 loading_animation.start()
-    #                 decoded_file = kcs_decode_wav(in_file, out_base, config_main) # Pass global config_main
-    #                 if decoded_file:
-    #                     loading_animation.stop()
-    #                     log_event(f"Standalone decode successful: {decoded_file}")
-    #                 else:
-    #                     loading_animation.stop()
-    #                     log_event(f"Standalone decode failed.")
-    #                 time.sleep(1)
-    #
-    #             elif choice_main_menu == 'Adjust Frequencies':
-    #                 updated_cfg = adjust_frequencies(config_main) # This already uses input() and saves config
-    #                 if updated_cfg:
-    #                     # config_main is already updated by adjust_frequencies
-    #                     ONES_FREQ = config_main["ZERO_FREQ"] * config_main["ONES_MULT"]
-    #                     FRAMERATE = ONES_FREQ * 2
-    #                     one_pulse = make_square_wave(ONES_FREQ, FRAMERATE, config_main) * 8
-    #                     zero_pulse = make_square_wave(config_main["ZERO_FREQ"], FRAMERATE, config_main) * 4
-    #                     null_pulse = ((zero_pulse * 9) + (one_pulse * 2)) * 10
-    #                     log_event("Frequencies updated and pulses re-initialized for standalone mode.")
-    #
-    #             elif choice_main_menu == 'Exit program':
-    #                 log_event("exiting program")
-    #                 exit(0)
-    log_event("Script finished. If run as main, interactive menu is disabled.")
+        usr_input = input(f"{INPUT_SIGN}").strip()
+
+        if usr_input.isdigit():  # check if a digit is entered
+            index = int(usr_input) - 1
+            if (
+                0 <= index < len(MAIN_MENU_OPTIONS)
+            ):  # check if the digit is within the range
+                usr_input = MAIN_MENU_OPTIONS[index][0]
+
+        for choice_main_menu, description in MAIN_MENU_OPTIONS:
+            if usr_input == choice_main_menu:
+                if choice_main_menu == "Encode text":
+                    # This would now need to gather inputs and pass to the refactored kcs_encode_wav
+                    in_file = input("ENCODE\nInput file name: ")
+                    out_file = get_filename_with_new_extension(in_file, "wav")
+                    loading_animation.start()
+                    if kcs_encode_wav(
+                        in_file, out_file, config_main
+                    ):  # Pass global config_main for standalone
+                        loading_animation.stop()
+                        log_event(f"Standalone encode successful: {out_file}")
+                    else:
+                        loading_animation.stop()
+                        log_event(f"Standalone encode failed.")
+                    time.sleep(1)
+
+                elif choice_main_menu == "Decode text":
+                    # This would now need to gather inputs and pass to the refactored kcs_decode_wav
+                    in_file = input("DECODE\nInput file name: ")
+                    # Base for output, e.g., derived from input or a fixed name
+                    out_base = os.path.splitext(os.path.basename(in_file))[0]
+                    loading_animation.start()
+                    decoded_file = kcs_decode_wav(
+                        in_file, out_base, config_main
+                    )  # Pass global config_main
+                    if decoded_file:
+                        loading_animation.stop()
+                        log_event(f"Standalone decode successful: {decoded_file}")
+                    else:
+                        loading_animation.stop()
+                        log_event(f"Standalone decode failed.")
+                    time.sleep(1)
+
+                elif choice_main_menu == "Adjust Frequencies":
+                    updated_cfg = adjust_frequencies(
+                        config_main
+                    )  # This already uses input() and saves config
+                    if updated_cfg:
+                        # config_main is already updated by adjust_frequencies
+                        ONES_FREQ = config_main["ZERO_FREQ"] * config_main["ONES_MULT"]
+                        FRAMERATE = ONES_FREQ * 2
+                        one_pulse = (
+                            make_square_wave(ONES_FREQ, FRAMERATE, config_main) * 8
+                        )
+                        zero_pulse = (
+                            make_square_wave(
+                                config_main["ZERO_FREQ"], FRAMERATE, config_main
+                            )
+                            * 4
+                        )
+                        null_pulse = ((zero_pulse * 9) + (one_pulse * 2)) * 10
+                        log_event(
+                            "Frequencies updated and pulses re-initialized for standalone mode."
+                        )
+
+                elif choice_main_menu == "Exit program":
+                    log_event("exiting program")
+                    exit(0)
