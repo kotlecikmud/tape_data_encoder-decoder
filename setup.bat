@@ -1,12 +1,17 @@
 @echo off
-
-REM Chceck pyton version
+TITLE Setup Tape Data Encoder & Decoder Suite
+echo Checking Python version...
 python --version
-REM Check for updates
-git pull
-REM Install/upgarde pip
-python.exe -m pip install --upgrade pip
-REM Install required libraries
-pip install -r requirements.txt
 
+echo Checking for Git repository updates...
+git pull
+
+echo Ensuring pip is installed and up to date...
+python -m ensurepip --default-pip
+python -m pip install --upgrade pip
+
+echo Installing required libraries from requirements.txt...
+python -m pip install -r requirements.txt
+
+echo Setup completed successfully!
 pause
