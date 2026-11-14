@@ -1,419 +1,388 @@
+# main.py
+# Unified Tape Data Encoder-Decoder & All-In-One Toolkit with Tkinter GUI
+# Single Main Application File containing all tools (KCS audio tape, Image <-> Binary, QR Code, Polish Diacritics).
+
 import os
-import sys  # For resource_path if needed
+import sys
+import time
+import threading
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox, scrolledtext
 
-# --- Imports from our modules ---
+# --- Import tool modules ---
 try:
-    # KCS functions and configuration
-    from kcs_enco_deco import (
-        kcs_encode_wav,
-        kcs_decode_wav,
-        load_cfg as kcs_load_cfg,
-        config_main as kcs_config_global,  # This is the global config from kcs_enco_deco
-        resource_path as kcs_resource_path,  # For loading config
-        get_filename_with_new_extension as kcs_get_filename_ext,
-        adjust_frequencies as kcs_adjust_frequencies,  # If we add this option later
-    )
-
-    # Initialize KCS config immediately
-    kcs_initial_config = kcs_load_cfg()
-    # The kcs_config_global in kcs_enco_deco module is now populated.
-    # We will pass kcs_config_global to kcs_encode_wav and kcs_decode_wav.
-    is_kcs_imported = True
-
-except ImportError as e:
-    print(f"Error importing from kcs_enco_deco: {e}")
-    print("Please ensure kcs_enco_deco.py is in the same directory or Python path.")
-    kcs_encode_wav = (
-        kcs_decode_wav
-    ) = (
-        kcs_load_cfg
-    ) = kcs_config_global = kcs_get_filename_ext = kcs_adjust_frequencies = None
-    kcs_initial_config = {}
-    is_kcs_imported = False
-
+    import kcs_enco_deco
+    KCS_AVAILABLE = True
+except Exception as e:
+    KCS_AVAILABLE = False
+    print(f"Warning: kcs_enco_deco not available: {e}")
 
 try:
-    # Image processing functions
-    from img2txt import encode as img_encode, decode as img_decode, MODES as IMG_MODES
-
-    is_img2text_imported = True
-except ImportError as e:
-    print(f"Error importing from img2txt: {e}")
-    print("Please ensure img2txt.py is in the same directory or Python path.")
-    img_encode = img_decode = IMG_MODES = None
-    is_img2text_imported = False
+    import img2txt
+    IMG_AVAILABLE = True
+except Exception as e:
+    IMG_AVAILABLE = False
+    print(f"Warning: img2txt not available: {e}")
 
 try:
-    # Polish signs processing function
-    from replace_polish_signs import process_file as process_polish_file
-except ImportError as e:
-    print(f"Error importing from replace_polish_signs: {e}")
-    print(
-        "Please ensure replace_polish_signs.py is in the same directory or Python path."
-    )
-    process_polish_file = None
+    import gen_qr
+    QR_AVAILABLE = True
+except Exception as e:
+    QR_AVAILABLE = False
+    print(f"Warning: gen_qr not available: {e}")
+
+try:
+    import replace_polish_signs
+    POLISH_AVAILABLE = True
+except Exception as e:
+    POLISH_AVAILABLE = False
+    print(f"Warning: replace_polish_signs not available: {e}")
 
 
-# --- Helper Functions ---
-def cls_console():
-    """Clears the console."""
-    os.system("cls" if os.name == "nt" else "clear")
+class RedirectText:
+    """Redirects print statements to a Tkinter ScrolledText widget."""
+    def __init__(self, text_widget):
+        self.text_widget = text_widget
+
+    def write(self, string):
+        def append():
+            self.text_widget.configure(state='normal')
+            self.text_widget.insert(tk.END, string)
+            self.text_widget.see(tk.END)
+            self.text_widget.configure(state='disabled')
+        if self.text_widget.winfo_exists():
+            self.text_widget.after(0, append)
+
+    def flush(self):
+        pass
 
 
-def get_valid_filepath(prompt_message, must_exist=True):
-    """Gets a valid file path from user, optionally checks for existence."""
-    while True:
-        filepath = input(prompt_message).strip()
-        if not filepath:
-            print("File path cannot be empty.")
-            continue
-        if must_exist and not os.path.exists(filepath):
-            print(f"Error: File not found at '{filepath}'. Please try again.")
-            continue
-        if not must_exist and os.path.isdir(filepath):
-            print(
-                f"Error: Expected a file path, but got a directory: '{filepath}'. Please try again."
-            )
-            continue
-        return filepath
+class MainApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Tape Data Encoder & Decoder - Unified Suite")
+        self.geometry("900x700")
+        self.minsize(800, 600)
 
+        # Style configuration
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
 
-def get_output_filepath(input_path, default_suffix, default_ext):
-    """Generates a default output filepath and asks user to confirm or change."""
-    base, _ = os.path.splitext(input_path)
-    suggested_path = f"{base}{default_suffix}{default_ext}"
+        # Main container with Notebook (Tabs)
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-    while True:
-        user_path = input(
-            f"Enter output file path (default: {suggested_path}): "
-        ).strip()
-        if not user_path:
-            return suggested_path
+        # Create Tabs
+        self.tab_kcs = ttk.Frame(self.notebook)
+        self.tab_img = ttk.Frame(self.notebook)
+        self.tab_qr = ttk.Frame(self.notebook)
+        self.tab_polish = ttk.Frame(self.notebook)
+        self.tab_logs = ttk.Frame(self.notebook)
 
-        # Basic validation: ensure it's not a directory if it exists
-        if os.path.isdir(user_path):
-            print(
-                f"Error: Output path '{user_path}' is a directory. Please enter a valid file path."
-            )
-            continue
+        self.notebook.add(self.tab_kcs, text="Audio / Tape (KCS)")
+        self.notebook.add(self.tab_img, text="Image / Binary Converter")
+        self.notebook.add(self.tab_qr, text="QR Code Generator")
+        self.notebook.add(self.tab_polish, text="Polish Diacritics")
+        self.notebook.add(self.tab_logs, text="Console Logs")
 
-        # Ensure parent directory exists
-        parent_dir = os.path.dirname(user_path)
-        if (
-            parent_dir
-        ):  # Only try to create if parent_dir is not empty (i.e., not saving in CWD)
-            if not os.path.exists(parent_dir):
-                try:
-                    os.makedirs(parent_dir)
-                    print(f"Info: Created directory: '{parent_dir}'")
-                except OSError as e:
-                    print(f"Error: Could not create directory '{parent_dir}'. {e}")
-                    continue  # Ask for path again
-            elif not os.path.isdir(parent_dir):
-                print(f"Error: Output path's parent '{parent_dir}' is not a directory.")
-                continue
+        self.build_kcs_tab()
+        self.build_img_tab()
+        self.build_qr_tab()
+        self.build_polish_tab()
+        self.build_logs_tab()
 
-        return user_path
+        # Redirect stdout/stderr to log console
+        self.stdout_redirector = RedirectText(self.log_text)
+        sys.stdout = self.stdout_redirector
+        sys.stderr = self.stdout_redirector
 
+        print("Unified Tape Data Encoder-Decoder Suite initialized successfully.")
 
-# --- Main Application Logic ---
-def main():
-    if not kcs_initial_config and (
-        kcs_encode_wav or kcs_decode_wav
-    ):  # Check if KCS part might be used
-        print(
-            "Warning: KCS configuration could not be loaded. KCS features might not work."
-        )
+    def run_in_thread(self, target, *args):
+        """Run task in background thread to keep GUI responsive."""
+        thread = threading.Thread(target=target, args=args, daemon=True)
+        thread.start()
 
-    while True:
-        cls_console()
-        print("\n--- All-In-One Application Menu ---")
-        print("1. Encode Text to KCS WAV")
-        print("2. Decode KCS WAV to Text")
-        print("3. Encode Image to Binary File")
-        print("4. Decode Binary File to Image")
-        print("5. Remove Polish Signs from Text File")
-        print("6. Restore Polish Signs in Text File")
-        print("7. Exit")
+    # ==================== Tab 1: KCS Audio / Tape ====================
+    def build_kcs_tab(self):
+        frame = ttk.LabelFrame(self.tab_kcs, text="Kansas City Standard (KCS) Audio Tape Encoder / Decoder")
+        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
-        choice = input("Enter your choice (1-7): ").strip()
+        # Input file
+        ttk.Label(frame, text="Input File / Text:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=10)
+        self.kcs_input_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.kcs_input_var, width=50).grid(row=0, column=1, padx=5, pady=10)
+        ttk.Button(frame, text="Browse...", command=lambda: self.browse_file(self.kcs_input_var)).grid(row=0, column=2, padx=5, pady=10)
 
-        # Main try-except block for unexpected errors during an operation
-        try:
-            if choice == "1":  # KCS Encode
-                if not is_kcs_imported:
-                    print(
-                        "Error: KCS encode function is not available (import failed)."
-                    )
+        # Output file
+        ttk.Label(frame, text="Output File (.wav or .txt):").grid(row=1, column=0, sticky=tk.W, padx=10, pady=10)
+        self.kcs_output_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.kcs_output_var, width=50).grid(row=1, column=1, padx=5, pady=10)
+        ttk.Button(frame, text="Browse...", command=lambda: self.browse_save_file(self.kcs_output_var)).grid(row=1, column=2, padx=5, pady=10)
+
+        # Buttons
+        btn_frame = ttk.Frame(frame)
+        btn_frame.grid(row=2, column=0, columnspan=3, pady=20)
+
+        ttk.Button(btn_frame, text="Encode to KCS WAV", command=self.kcs_encode_action, width=20).pack(side=tk.LEFT, padx=10)
+        ttk.Button(btn_frame, text="Decode KCS WAV", command=self.kcs_decode_action, width=20).pack(side=tk.LEFT, padx=10)
+
+    def kcs_encode_action(self):
+        if not KCS_AVAILABLE:
+            messagebox.showerror("Error", "kcs_enco_deco module is not available.")
+            return
+        inp = self.kcs_input_var.get().strip()
+        out = self.kcs_output_var.get().strip()
+        if not inp:
+            messagebox.showerror("Error", "Please specify an input file or text.")
+            return
+        if not out:
+            base, _ = os.path.splitext(inp)
+            out = base + "_encoded.wav"
+            self.kcs_output_var.set(out)
+
+        def task():
+            try:
+                print(f"Starting KCS Encoding: {inp} -> {out}")
+                cfg = kcs_enco_deco.load_cfg()
+                kcs_enco_deco.kcs_encode_wav(inp, out, cfg)
+                messagebox.showinfo("Success", f"KCS encoding completed:\n{out}")
+            except Exception as e:
+                print(f"Error in KCS Encoding: {e}")
+                messagebox.showerror("Error", str(e))
+
+        self.run_in_thread(task)
+
+    def kcs_decode_action(self):
+        if not KCS_AVAILABLE:
+            messagebox.showerror("Error", "kcs_enco_deco module is not available.")
+            return
+        inp = self.kcs_input_var.get().strip()
+        out = self.kcs_output_var.get().strip()
+        if not inp:
+            messagebox.showerror("Error", "Please specify an input WAV file.")
+            return
+        if not out:
+            base, _ = os.path.splitext(inp)
+            out = base + "_decoded.txt"
+            self.kcs_output_var.set(out)
+
+        def task():
+            try:
+                print(f"Starting KCS Decoding: {inp} -> {out}")
+                cfg = kcs_enco_deco.load_cfg()
+                kcs_enco_deco.kcs_decode_wav(inp, out, cfg)
+                messagebox.showinfo("Success", f"KCS decoding completed:\n{out}")
+            except Exception as e:
+                print(f"Error in KCS Decoding: {e}")
+                messagebox.showerror("Error", str(e))
+
+        self.run_in_thread(task)
+
+    # ==================== Tab 2: Image / Binary Converter ====================
+    def build_img_tab(self):
+        frame = ttk.LabelFrame(self.tab_img, text="Image <-> Binary Converter (Fixed Binary Image Formats)")
+        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+
+        # Input File
+        ttk.Label(frame, text="Input File (Image / .bin):").grid(row=0, column=0, sticky=tk.W, padx=10, pady=10)
+        self.img_input_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.img_input_var, width=50).grid(row=0, column=1, padx=5, pady=10)
+        ttk.Button(frame, text="Browse...", command=lambda: self.browse_file(self.img_input_var)).grid(row=0, column=2, padx=5, pady=10)
+
+        # Mode for Encoding
+        ttk.Label(frame, text="Binary Encoding Mode:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=10)
+        self.img_mode_var = tk.StringVar(value="MONO8")
+        modes = ["MONO2", "MONO4", "MONO8", "RGB4", "RGB8"]
+        ttk.Combobox(frame, textvariable=self.img_mode_var, values=modes, state="readonly", width=15).grid(row=1, column=1, sticky=tk.W, padx=5, pady=10)
+
+        # Output format for Decoding
+        ttk.Label(frame, text="Decoded Image Format:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=10)
+        self.img_format_var = tk.StringVar(value="png")
+        formats = ["png", "bmp", "jpg", "jpeg", "webp"]
+        ttk.Combobox(frame, textvariable=self.img_format_var, values=formats, state="readonly", width=15).grid(row=2, column=1, sticky=tk.W, padx=5, pady=10)
+
+        # Output File
+        ttk.Label(frame, text="Output File Path:").grid(row=3, column=0, sticky=tk.W, padx=10, pady=10)
+        self.img_output_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.img_output_var, width=50).grid(row=3, column=1, padx=5, pady=10)
+        ttk.Button(frame, text="Browse...", command=lambda: self.browse_save_file(self.img_output_var)).grid(row=3, column=2, padx=5, pady=10)
+
+        # Buttons
+        btn_frame = ttk.Frame(frame)
+        btn_frame.grid(row=4, column=0, columnspan=3, pady=20)
+
+        ttk.Button(btn_frame, text="Encode Image to Binary", command=self.img_encode_action, width=22).pack(side=tk.LEFT, padx=10)
+        ttk.Button(btn_frame, text="Decode Binary to Image", command=self.img_decode_action, width=22).pack(side=tk.LEFT, padx=10)
+
+    def img_encode_action(self):
+        if not IMG_AVAILABLE:
+            messagebox.showerror("Error", "img2txt module is not available.")
+            return
+        inp = self.img_input_var.get().strip()
+        mode = self.img_mode_var.get().strip()
+        if not inp:
+            messagebox.showerror("Error", "Please select an input image file.")
+            return
+
+        def task():
+            try:
+                print(f"Encoding image '{inp}' with mode {mode}...")
+                out_path = img2txt.encode(inp, mode=mode)
+                self.img_output_var.set(out_path)
+                messagebox.showinfo("Success", f"Image successfully encoded to:\n{out_path}")
+            except Exception as e:
+                print(f"Error encoding image: {e}")
+                messagebox.showerror("Error", str(e))
+
+        self.run_in_thread(task)
+
+    def img_decode_action(self):
+        if not IMG_AVAILABLE:
+            messagebox.showerror("Error", "img2txt module is not available.")
+            return
+        inp = self.img_input_var.get().strip()
+        out_format = self.img_format_var.get().strip().lower()
+        if not inp:
+            messagebox.showerror("Error", "Please select an encoded binary file.")
+            return
+
+        def task():
+            try:
+                print(f"Decoding binary file '{inp}' to image format {out_format.upper()}...")
+                decoded_path = img2txt.decode(inp)
+                if decoded_path and os.path.exists(decoded_path):
+                    if out_format not in ["png", ""]:
+                        from PIL import Image
+                        img = Image.open(decoded_path)
+                        new_out_path = os.path.splitext(inp)[0] + f"_decoded.{out_format}"
+                        img.save(new_out_path, format=out_format.upper() if out_format != 'jpg' else 'JPEG')
+                        decoded_path = new_out_path
+                    self.img_output_var.set(decoded_path)
+                    messagebox.showinfo("Success", f"Binary successfully decoded to image:\n{decoded_path}")
                 else:
-                    print("\n--- Encode Text to KCS WAV ---")
-                    input_file = get_valid_filepath(
-                        "Enter path to the input text file: ", must_exist=True
-                    )
-                    if input_file:  # Proceed only if a valid input file was provided
-                        output_file = get_output_filepath(
-                            input_file, "_encoded", ".wav"
-                        )
-                        if (
-                            output_file
-                        ):  # Proceed only if a valid output file was provided/confirmed
-                            print(
-                                f"Using KCS Config: ZERO_FREQ={kcs_config_global.get('ZERO_FREQ')}, ONES_MULT={kcs_config_global.get('ONES_MULT')}"
-                            )
-                            try:
-                                success = kcs_encode_wav(
-                                    input_file, output_file, kcs_config_global
-                                )
-                                if success:
-                                    print(
-                                        f"Successfully encoded '{input_file}' to '{output_file}'"
-                                    )
-                                else:
-                                    # The module itself should log specifics if possible
-                                    print(
-                                        f"Error: Failed to encode '{input_file}'. Module indicated failure."
-                                    )
-                            except Exception as e:
-                                print(
-                                    f"Error: An exception occurred during KCS encoding operation."
-                                )
-                                print(f"Debug details: {type(e).__name__} - {e}")
+                    messagebox.showerror("Error", "Decoding failed to produce output image.")
+            except Exception as e:
+                print(f"Error decoding binary file: {e}")
+                messagebox.showerror("Error", str(e))
 
-            elif choice == "2":  # KCS Decode
-                if not is_kcs_imported:
-                    print(
-                        "Error: KCS decode function is not available (import failed)."
-                    )
+        self.run_in_thread(task)
+
+    # ==================== Tab 3: QR Code Generator ====================
+    def build_qr_tab(self):
+        frame = ttk.LabelFrame(self.tab_qr, text="QR Code Generator")
+        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+
+        ttk.Label(frame, text="Data / Text to Encode:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=10)
+        self.qr_input_text = tk.Text(frame, height=5, width=50)
+        self.qr_input_text.grid(row=0, column=1, padx=5, pady=10)
+
+        ttk.Label(frame, text="Output QR Image Path:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=10)
+        self.qr_output_var = tk.StringVar(value="qrcode.png")
+        ttk.Entry(frame, textvariable=self.qr_output_var, width=50).grid(row=1, column=1, padx=5, pady=10)
+        ttk.Button(frame, text="Browse...", command=lambda: self.browse_save_file(self.qr_output_var)).grid(row=1, column=2, padx=5, pady=10)
+
+        ttk.Button(frame, text="Generate QR Code", command=self.qr_generate_action, width=25).grid(row=2, column=1, pady=20)
+
+    def qr_generate_action(self):
+        if not QR_AVAILABLE:
+            messagebox.showerror("Error", "gen_qr module is not available.")
+            return
+        data = self.qr_input_text.get("1.0", tk.END).strip()
+        out_path = self.qr_output_var.get().strip()
+        if not data:
+            messagebox.showerror("Error", "Please enter data or text for the QR code.")
+            return
+        if not out_path:
+            out_path = "qrcode.png"
+            self.qr_output_var.set(out_path)
+
+        def task():
+            try:
+                print(f"Generating QR code -> {out_path}")
+                gen_qr.generate_qr_code(data, out_path)
+                messagebox.showinfo("Success", f"QR Code generated successfully:\n{out_path}")
+            except Exception as e:
+                print(f"Error generating QR code: {e}")
+                messagebox.showerror("Error", str(e))
+
+        self.run_in_thread(task)
+
+    # ==================== Tab 4: Polish Diacritics ====================
+    def build_polish_tab(self):
+        frame = ttk.LabelFrame(self.tab_polish, text="Polish Diacritics / Signs Processor")
+        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+
+        ttk.Label(frame, text="Input Text / File:").grid(row=0, column=0, sticky=tk.W, padx=10, pady=10)
+        self.polish_input_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=self.polish_input_var, width=50).grid(row=0, column=1, padx=5, pady=10)
+        ttk.Button(frame, text="Browse...", command=lambda: self.browse_file(self.polish_input_var)).grid(row=0, column=2, padx=5, pady=10)
+
+        ttk.Label(frame, text="Or Direct Text Input:").grid(row=1, column=0, sticky=tk.W, padx=10, pady=10)
+        self.polish_text_box = tk.Text(frame, height=6, width=50)
+        self.polish_text_box.grid(row=1, column=1, padx=5, pady=10)
+
+        ttk.Button(frame, text="Process / Replace Polish Signs", command=self.polish_process_action, width=30).grid(row=2, column=1, pady=20)
+
+    def polish_process_action(self):
+        if not POLISH_AVAILABLE:
+            messagebox.showerror("Error", "replace_polish_signs module is not available.")
+            return
+        inp = self.polish_input_var.get().strip()
+        direct_text = self.polish_text_box.get("1.0", tk.END).strip()
+
+        def task():
+            try:
+                if inp:
+                    print(f"Processing Polish signs in file: {inp}")
+                    replace_polish_signs.process_file(inp)
+                    messagebox.showinfo("Success", f"Processed file successfully: {inp}")
+                elif direct_text:
+                    print("Processing direct text input for Polish signs...")
+                    res = direct_text
+                    for k, v in replace_polish_signs.REPLACEMENTS_DICTIONARY.items():
+                        res = res.replace(k, v.strip("'"))
+                    self.polish_text_box.delete("1.0", tk.END)
+                    self.polish_text_box.insert("1.0", res)
+                    print(f"Result:\n{res}")
+                    messagebox.showinfo("Success", "Polish signs processed successfully.")
                 else:
-                    print("\n--- Decode KCS WAV to Text ---")
-                    input_file = get_valid_filepath(
-                        "Enter path to the KCS WAV file: ", must_exist=True
-                    )
-                    if input_file:
-                        base_input_name = os.path.splitext(
-                            os.path.basename(input_file)
-                        )[0]
-                        output_base_name_prompt = f"Enter base for output file name (e.g., {base_input_name}_decoded, default uses this pattern): "
-                        output_base_name_user = input(output_base_name_prompt).strip()
-                        if not output_base_name_user:  # Default if user enters nothing
-                            output_base_name_user = base_input_name + "_decoded"
+                    messagebox.showerror("Error", "Please provide either an input file or direct text.")
+            except Exception as e:
+                print(f"Error processing Polish signs: {e}")
+                messagebox.showerror("Error", str(e))
 
-                        output_dir = os.path.dirname(input_file)
-                        output_path_base_for_decode = os.path.join(
-                            output_dir, output_base_name_user
-                        )
+        self.run_in_thread(task)
 
-                        print(
-                            f"Using KCS Config: ZERO_FREQ={kcs_config_global.get('ZERO_FREQ')}, ONES_MULT={kcs_config_global.get('ONES_MULT')}"
-                        )
-                        try:
-                            output_filename = kcs_decode_wav(
-                                input_file,
-                                output_path_base_for_decode,
-                                kcs_config_global,
-                            )
-                            if output_filename:
-                                print(
-                                    f"Successfully decoded '{input_file}' to '{output_filename}'"
-                                )
-                            else:
-                                print(
-                                    f"Error: Failed to decode '{input_file}'. Module indicated failure."
-                                )
-                        except Exception as e:
-                            print(
-                                f"Error: An exception occurred during KCS decoding operation."
-                            )
-                            print(f"Debug details: {type(e).__name__} - {e}")
+    # ==================== Tab 5: Console Logs ====================
+    def build_logs_tab(self):
+        frame = ttk.LabelFrame(self.tab_logs, text="Application Activity Log & Console")
+        frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
-            elif choice == "3":  # Image Encode
-                if not is_img2text_imported or not IMG_MODES:
-                    print(
-                        "Error: Image encode function or modes are not available (import failed)."
-                    )
-                else:
-                    print("\n--- Encode Image to Binary File ---")
-                    input_file = get_valid_filepath(
-                        "Enter path to the input image file: ", must_exist=True
-                    )
-                    if input_file:
-                        print("Available encoding modes:")
-                        for key, value in IMG_MODES.items():
-                            print(f"  {key}: {value}")  # Display as "1: MONO2"
+        self.log_text = scrolledtext.ScrolledText(frame, wrap=tk.WORD, state='disabled', bg="#1e1e1e", fg="#00ff00", font=("Consolas", 10))
+        self.log_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-                        mode_prompt = f"Select mode number (1-{len(IMG_MODES)}) or name (e.g., MONO8, default: MONO8): "
-                        mode_choice_input = input(mode_prompt).strip()
+        ttk.Button(frame, text="Clear Logs", command=lambda: self.clear_logs()).pack(pady=5)
 
-                        selected_mode_name = IMG_MODES.get(
-                            mode_choice_input
-                        )  # Check if input is a key like "1"
-                        if (
-                            not selected_mode_name
-                        ):  # If not a key, check if it's a value like "MONO8"
-                            # Check if input matches a value in IMG_MODES (case-insensitive for value matching)
-                            is_value_match = False
-                            for k, v in IMG_MODES.items():
-                                if mode_choice_input.upper() == v:
-                                    selected_mode_name = v
-                                    is_value_match = True
-                                    break
-                            if not is_value_match:  # Default if invalid or empty
-                                selected_mode_name = "MONO8"  # Default to MONO8
-                                if (
-                                    mode_choice_input
-                                ):  # User entered something, but it was invalid
-                                    print(
-                                        f"Info: Invalid mode selection '{mode_choice_input}'. Defaulting to {selected_mode_name}."
-                                    )
-                                else:  # User entered nothing
-                                    print(
-                                        f"Info: No mode selected. Defaulting to {selected_mode_name}."
-                                    )
-                        print(f"Selected mode: {selected_mode_name}")
-                        try:
-                            output_file = img_encode(input_file, selected_mode_name)
-                            if output_file:
-                                print(
-                                    f"Successfully encoded '{input_file}' to '{output_file}' using mode {selected_mode_name}"
-                                )
-                            else:
-                                print(
-                                    f"Error: Failed to encode '{input_file}'. Module indicated failure."
-                                )
-                        except Exception as e:
-                            print(
-                                f"Error: An exception occurred during image encoding operation."
-                            )
-                            print(f"Debug details: {type(e).__name__} - {e}")
+    def clear_logs(self):
+        self.log_text.configure(state='normal')
+        self.log_text.delete("1.0", tk.END)
+        self.log_text.configure(state='disabled')
 
-            elif choice == "4":  # Image Decode
-                if not is_img2text_imported:
-                    print(
-                        "Error: Image decode function is not available (import failed)."
-                    )
-                else:
-                    print("\n--- Decode Binary File to Image ---")
-                    input_file = get_valid_filepath(
-                        "Enter path to the encoded binary file: ", must_exist=True
-                    )
-                    if input_file:
-                        try:
-                            output_file = img_decode(input_file)
-                            if output_file:
-                                print(
-                                    f"Successfully decoded '{input_file}' to '{output_file}'"
-                                )
-                            else:
-                                print(
-                                    f"Error: Failed to decode '{input_file}'. Module indicated failure."
-                                )
-                        except Exception as e:
-                            print(
-                                f"Error: An exception occurred during image decoding operation."
-                            )
-                            print(f"Debug details: {type(e).__name__} - {e}")
+    # ==================== Helpers ====================
+    def browse_file(self, string_var):
+        filename = filedialog.askopenfilename()
+        if filename:
+            string_var.set(filename)
 
-            elif choice == "5":  # Replace Polish Signs
-                if not process_polish_file:
-                    print(
-                        "Error: Polish signs processing function is not available (import failed)."
-                    )
-                else:
-                    print("\n--- Remove Polish Signs from Text File ---")
-                    input_file = get_valid_filepath(
-                        "Enter path to the input text file: ", must_exist=True
-                    )
-                    if input_file:
-                        output_file = get_output_filepath(
-                            input_file, "_removed_PL", ".txt"
-                        )
-                        if output_file:
-                            try:
-                                success = process_polish_file(
-                                    input_file, output_file, "PL2"
-                                )
-                                if success:
-                                    print(
-                                        f"Successfully processed '{input_file}', Polish signs removed. Output: '{output_file}'"
-                                    )
-                                else:
-                                    print(
-                                        f"Error: Failed to process '{input_file}'. Module indicated failure."
-                                    )
-                            except Exception as e:
-                                print(
-                                    f"Error: An exception occurred during Polish sign removal."
-                                )
-                                print(f"Debug details: {type(e).__name__} - {e}")
-
-            elif choice == "6":  # Restore Polish Signs
-                if not process_polish_file:
-                    print(
-                        "Error: Polish signs processing function is not available (import failed)."
-                    )
-                else:
-                    print("\n--- Restore Polish Signs in Text File ---")
-                    input_file = get_valid_filepath(
-                        "Enter path to the text file with removed Polish signs: ",
-                        must_exist=True,
-                    )
-                    if input_file:
-                        output_file = get_output_filepath(
-                            input_file, "_restored_PL", ".txt"
-                        )
-                        if output_file:
-                            try:
-                                success = process_polish_file(
-                                    input_file, output_file, "2PL"
-                                )
-                                if success:
-                                    print(
-                                        f"Successfully processed '{input_file}', Polish signs restored. Output: '{output_file}'"
-                                    )
-                                else:
-                                    print(
-                                        f"Error: Failed to process '{input_file}'. Module indicated failure."
-                                    )
-                            except Exception as e:
-                                print(
-                                    f"Error: An exception occurred during Polish sign restoration."
-                                )
-                                print(f"Debug details: {type(e).__name__} - {e}")
-
-            elif choice == "7":
-                print("Exiting application...")
-                break
-
-            else:  # Handles invalid menu choices (non-numeric or out of range)
-                print("Error: Invalid choice. Please enter a number between 1 and 7.")
-
-        except (
-            Exception
-        ) as e:  # Catch-all for truly unexpected errors in the main loop or input functions
-            print(
-                f"Critical Error: An unexpected issue occurred in the application: {e}"
-            )
-            print(f"Debug details: {type(e).__name__} - {e}")
-            # For more detailed debugging if needed:
-            # import traceback
-            # traceback.print_exc()
-
-        if choice not in ("7"):  # Don't pause if exiting
-            input("\nPress Enter to return to the menu...")
+    def browse_save_file(self, string_var):
+        filename = filedialog.asksaveasfilename()
+        if filename:
+            string_var.set(filename)
 
 
 if __name__ == "__main__":
-    # This check is important if resource_path relies on sys._MEIPASS for PyInstaller
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         os.chdir(sys._MEIPASS)
-    
-    if "--cli" in sys.argv:
-        main()
-    else:
-        try:
-            import app_gui
-            app = app_gui.MainApp()
-            app.mainloop()
-        except Exception as e:
-            print(f"Failed to launch GUI ({e}), falling back to CLI menu...")
-            main()
+    app = MainApp()
+    app.mainloop()
