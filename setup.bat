@@ -1,17 +1,57 @@
 @echo off
-TITLE Setup Tape Data Encoder & Decoder Suite
-echo Checking Python version...
-python --version
+cls
 
-echo Checking for Git repository updates...
+REM Always run from the project root (the folder this file is in)
+cd /d "%~dp0"
+
+echo ==============================
+echo   Starting update process...
+echo ==============================
+
+REM Path to venv python
+set VENV_PYTHON=..\general_purpose_venv\Scripts\python.exe
+
+REM Check if venv exists
+if not exist "%VENV_PYTHON%" (
+echo ERROR: Virtual environment not found!
+echo Expected at: %VENV_PYTHON%
+pause
+exit /b 1
+)
+
+echo.
+echo Using Python from venv:
+"%VENV_PYTHON%" --version
+
+echo.
+echo Pulling latest code from Git...
+set GIT_FAILED=0
 git pull
+if errorlevel 1 (
+set GIT_FAILED=1
+echo WARNING: git pull failed - continuing with the current code.
+)
 
-echo Ensuring pip is installed and up to date...
-python -m ensurepip --default-pip
-python -m pip install --upgrade pip
+echo.
+echo Upgrading pip...
+"%VENV_PYTHON%" -m pip install --upgrade pip
 
-echo Installing required libraries from requirements.txt...
-python -m pip install -r requirements.txt
+echo.
+echo Installing requirements...
+"%VENV_PYTHON%" -m pip install -r requirements.txt
+if errorlevel 1 (
+echo ERROR: Failed to install requirements!
+pause
+exit /b 1
+)
 
-echo Setup completed successfully!
+echo.
+echo ==============================
+if "%GIT_FAILED%"=="1" (
+echo   Requirements updated, but git pull failed.
+) else (
+echo   Update completed successfully!
+)
+echo ==============================
+
 pause
