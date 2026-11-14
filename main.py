@@ -124,8 +124,105 @@ class MainApp(tk.Tk):
         btn_frame = ttk.Frame(frame)
         btn_frame.grid(row=2, column=0, columnspan=3, pady=20)
 
-        ttk.Button(btn_frame, text="Encode to KCS WAV", command=self.kcs_encode_action, width=20).pack(side=tk.LEFT, padx=10)
-        ttk.Button(btn_frame, text="Decode KCS WAV", command=self.kcs_decode_action, width=20).pack(side=tk.LEFT, padx=10)
+        ttk.Button(btn_frame, text="Encode to KCS WAV", command=self.kcs_encode_action, width=18).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Decode KCS WAV", command=self.kcs_decode_action, width=18).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Analyze Waveform", command=self.kcs_analyze_waveform_action, width=18).pack(side=tk.LEFT, padx=5)
+
+    def kcs_analyze_waveform_action(self):
+        wav_path = self.kcs_input_var.get().strip()
+        if not wav_path or not wav_path.lower().endswith('.wav'):
+            wav_path = self.kcs_output_var.get().strip()
+        if not wav_path or not wav_path.lower().endswith('.wav'):
+            wav_path = filedialog.askopenfilename(title="Select KCS WAV File for Waveform Analysis", filetypes=[("WAV Audio", "*.wav"), ("All Files", "*.*")])
+        if not wav_path or not os.path.exists(wav_path):
+            messagebox.showerror("Error", "Please select a valid .wav audio file for analysis.")
+            return
+
+        def task():
+            try:
+                import wave
+                import numpy as np
+
+                with wave.open(wav_path, 'rb') as wf:
+                    framerate = wf.getframerate()
+                    nframes = wf.getnframes()
+                    channels = wf.getnchannels()
+                    sampwidth = wf.getsampwidth()
+                    duration = nframes / float(framerate)
+                    audio_bytes = wf.readframes(nframes)
+
+                if sampwidth == 2:
+                    audio_data = np.frombuffer(audio_bytes, dtype=np.int16)
+                elif sampwidth == 1:
+                    audio_data = np.frombuffer(audio_bytes, dtype=np.uint8) - 128
+                else:
+                    audio_data = np.frombuffer(audio_bytes, dtype=np.int16)
+
+                if channels > 1:
+                    audio_data = audio_data[::channels]
+
+                def show_window():
+                    win = tk.Toplevel(self)
+                    win.title(f"Waveform Analyzer - {os.path.basename(wav_path)}")
+                    win.geometry("850x550")
+
+                    info_frame = ttk.LabelFrame(win, text="Audio File Properties")
+                    info_frame.pack(fill=tk.X, padx=10, pady=10)
+
+                    info_text = (f"File: {wav_path}\n"
+                                 f"Sample Rate: {framerate} Hz | Channels: {channels} | "
+                                 f"Duration: {duration:.2f} s | Total Frames: {nframes} | "
+                                 f"Sample Width: {sampwidth*8}-bit")
+                    ttk.Label(info_frame, text=info_text, font=("Consolas", 10)).pack(padx=10, pady=10)
+
+                    canvas_frame = ttk.LabelFrame(win, text="Waveform Oscilloscope")
+                    canvas_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+                    canvas = tk.Canvas(canvas_frame, bg="black")
+                    canvas.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+                    def draw_waveform(event=None):
+                        canvas.delete("all")
+                        w = canvas.winfo_width()
+                        h = canvas.winfo_height()
+                        if w < 10 or h < 10:
+                            return
+
+                        step = max(1, len(audio_data) // w)
+                        downsampled = audio_data[::step]
+                        if len(downsampled) == 0:
+                            return
+
+                        max_val = np.max(np.abs(downsampled))
+                        if max_val == 0:
+                            max_val = 1
+
+                        mid_y = h / 2
+                        scale_y = (h / 2.2) / max_val
+
+                        points = []
+                        for x, val in enumerate(downsampled):
+                            if x >= w:
+                                break
+                            y = mid_y - (val * scale_y)
+                            points.append((x, y))
+
+                        if len(points) > 1:
+                            flat_points = [coord for pt in points for coord in pt]
+                            canvas.create_line(flat_points, fill="#00ff00", width=1)
+
+                        canvas.create_line(0, mid_y, w, mid_y, fill="#333333", dash=(2, 2))
+                        canvas.create_text(50, 15, text=f"Max Amp: {max_val}", fill="#00ff00", anchor="w")
+
+                    canvas.bind("<Configure>", draw_waveform)
+
+                self.after(0, show_window)
+
+            except Exception as e:
+                print(f"Error analyzing waveform: {e}")
+                messagebox.showerror("Error", str(e))
+
+        self.run_in_thread(task)
 
     def kcs_encode_action(self):
         if not KCS_AVAILABLE:
