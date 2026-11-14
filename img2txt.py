@@ -567,7 +567,7 @@ def encode(image_path, mode="MONO8"):
             packed_data = pack_2bit_data(quantized_pixels)
             return packed_data
         elif mode == "MONO4":
-            quantized_pixels = [(p * 4) // 255 for p in row_pixels]
+            quantized_pixels = [(p * 15) // 255 for p in row_pixels]
             packed_data = pack_4bit_data(quantized_pixels)
             return packed_data
         elif mode == "MONO8":

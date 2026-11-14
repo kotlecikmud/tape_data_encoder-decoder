@@ -405,7 +405,15 @@ def main():
 if __name__ == "__main__":
     # This check is important if resource_path relies on sys._MEIPASS for PyInstaller
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        os.chdir(
-            sys._MEIPASS
-        )  # Change CWD to where bundled files are if running as PyInstaller bundle
-    main()
+        os.chdir(sys._MEIPASS)
+    
+    if "--cli" in sys.argv:
+        main()
+    else:
+        try:
+            import app_gui
+            app = app_gui.MainApp()
+            app.mainloop()
+        except Exception as e:
+            print(f"Failed to launch GUI ({e}), falling back to CLI menu...")
+            main()
