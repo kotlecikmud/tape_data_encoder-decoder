@@ -1,5 +1,5 @@
 @echo off
-TITLE Tape Data Encoder & Decoder - Unified Suite
+TITLE Tape_Data_Encoder_and_Decoder
 echo Starting Unified Tape Data Encoder & Decoder App...
 python main.py
 pause
